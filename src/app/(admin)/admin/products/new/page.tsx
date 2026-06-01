@@ -1,5 +1,5 @@
 import { ProductForm } from "@/components/admin/product-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { db } from "@/lib/db";
 
 export default async function NewProductPage() {
@@ -10,23 +10,20 @@ export default async function NewProductPage() {
 
   if (categories.length === 0) {
     return (
-      <p className="text-muted-foreground">
-        Create a category before adding products.
-      </p>
+      <AdminPageHeader
+        title="New product"
+        description="Create a category first, then add products."
+      />
     );
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-primary">New product</h1>
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>Product details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProductForm categories={categories} />
-        </CardContent>
-      </Card>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="New product"
+        description="Add images, variants, attributes, tags, and SEO metadata."
+      />
+      <ProductForm categories={categories} />
     </div>
   );
 }

@@ -2,7 +2,13 @@
 
 import { useActionState } from "react";
 
-import { createCategory, updateCategory, type ActionState } from "@/actions/categories";
+import {
+  createCategory,
+  updateCategory,
+  type ActionState,
+} from "@/actions/categories";
+import { CategoryImageUpload } from "@/components/admin/category-image-upload";
+import { FormSection } from "@/components/admin/form-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,7 +36,6 @@ export function CategoryForm({ category }: CategoryFormProps) {
     : createCategory;
 
   const [state, formAction, pending] = useActionState(action, initialState);
-
   const schema = (category?.attributeSchema ?? []) as AttributeField[];
 
   return (
@@ -41,94 +46,88 @@ export function CategoryForm({ category }: CategoryFormProps) {
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <Label htmlFor="name">Name *</Label>
-          <Input
-            id="name"
-            name="name"
-            required
-            defaultValue={category?.name}
-            className="mt-1.5"
-          />
-        </div>
-        <div>
-          <Label htmlFor="slug">Slug</Label>
-          <Input
-            id="slug"
-            name="slug"
-            defaultValue={category?.slug}
-            placeholder="auto-generated if empty"
-            className="mt-1.5"
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          name="description"
-          defaultValue={category?.description ?? ""}
-          className="mt-1.5"
-          rows={4}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="imageUrl">Image URL</Label>
-        <Input
-          id="imageUrl"
-          name="imageUrl"
-          type="url"
-          defaultValue={category?.imageUrl ?? ""}
-          className="mt-1.5"
-        />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <Label htmlFor="sortOrder">Sort order</Label>
-          <Input
-            id="sortOrder"
-            name="sortOrder"
-            type="number"
-            min={0}
-            defaultValue={category?.sortOrder ?? 0}
-            className="mt-1.5"
-          />
-        </div>
-        <div className="flex items-end pb-2">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              name="isActive"
-              defaultChecked={category?.isActive ?? true}
-              className="h-4 w-4 rounded border-border"
+      <FormSection
+        title="Basic information"
+        description="Categories organize your catalog. Define optional attribute fields for products in this category."
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="name">Name *</Label>
+            <Input
+              id="name"
+              name="name"
+              required
+              defaultValue={category?.name}
+              className="mt-1.5"
             />
-            Active
-          </label>
+          </div>
+          <div>
+            <Label htmlFor="slug">Slug</Label>
+            <Input
+              id="slug"
+              name="slug"
+              defaultValue={category?.slug}
+              placeholder="auto-generated if empty"
+              className="mt-1.5"
+            />
+          </div>
         </div>
-      </div>
 
-      <div>
-        <Label htmlFor="attributeSchema">
-          Attribute schema (JSON)
-        </Label>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Define optional product fields for this category. Example:{" "}
-          {`[{"key":"size","label":"Size","type":"text"}]`}
-        </p>
+        <div className="mt-4">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            name="description"
+            defaultValue={category?.description ?? ""}
+            className="mt-1.5"
+            rows={4}
+          />
+        </div>
+
+        <div className="mt-4">
+          <CategoryImageUpload defaultUrl={category?.imageUrl} />
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="sortOrder">Sort order</Label>
+            <Input
+              id="sortOrder"
+              name="sortOrder"
+              type="number"
+              min={0}
+              defaultValue={category?.sortOrder ?? 0}
+              className="mt-1.5"
+            />
+          </div>
+          <div className="flex items-end pb-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="isActive"
+                defaultChecked={category?.isActive ?? true}
+                className="h-4 w-4 rounded border-border"
+              />
+              Visible on storefront
+            </label>
+          </div>
+        </div>
+      </FormSection>
+
+      <FormSection
+        title="Product attribute schema"
+        description="JSON array defining custom fields for products (size, material, capacity, etc.). Industry-agnostic."
+      >
         <Textarea
           id="attributeSchema"
           name="attributeSchema"
-          className="mt-1.5 font-mono text-xs"
-          rows={8}
+          className="font-mono text-xs"
+          rows={10}
           defaultValue={JSON.stringify(schema, null, 2)}
         />
-      </div>
+      </FormSection>
 
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" size="lg" disabled={pending}>
         {pending ? "Saving…" : category ? "Update category" : "Create category"}
       </Button>
     </form>

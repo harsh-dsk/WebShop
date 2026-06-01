@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get("file");
     const productId = formData.get("productId");
+    const folder = formData.get("folder");
 
     if (!file || !(file instanceof File)) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -45,14 +46,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const image = await uploadProductImage(
-      file,
-      typeof productId === "string" ? productId : undefined,
-    );
+    const image = await uploadProductImage(file, {
+      productId: typeof productId === "string" ? productId : undefined,
+      subfolder: typeof folder === "string" ? folder : undefined,
+    });
 
     return NextResponse.json({ image });
-  } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
-  }
+  } catch (error: any) {
+  console.error("UPLOAD ERROR FULL:", error);
+
+  return NextResponse.json(
+    {
+      error: error?.message || "Upload failed",
+      stack: error?.stack,
+    },
+    { status: 500 }
+  );
+}
 }

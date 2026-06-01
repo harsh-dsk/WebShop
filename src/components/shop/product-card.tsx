@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/format";
 import { ROUTES } from "@/lib/constants/routes";
 import {
+  getEffectiveStock,
   getPrimaryImage,
   parseProductImages,
 } from "@/lib/services/catalog.service";
@@ -20,6 +21,7 @@ type ProductCardProps = {
     isFeatured: boolean;
     images: unknown;
     category: { name: string };
+    variants?: { stock: number; isActive: boolean }[];
   };
 };
 
@@ -30,7 +32,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const compareAt = product.compareAtPrice
     ? Number(product.compareAtPrice)
     : null;
-  const outOfStock = product.stock <= 0;
+  const outOfStock = getEffectiveStock(product) <= 0;
 
   return (
     <Link

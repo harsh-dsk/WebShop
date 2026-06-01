@@ -10,10 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ---------------------------------------------------------------------------
-// Enums
-// ---------------------------------------------------------------------------
-
 enum Role {
   CUSTOMER
   ADMIN
@@ -36,10 +32,6 @@ enum PaymentStatus {
   REFUNDED
 }
 
-// ---------------------------------------------------------------------------
-// User (synced from Clerk via webhook)
-// ---------------------------------------------------------------------------
-
 model User {
   id        String   @id @default(cuid())
   clerkId   String   @unique
@@ -60,11 +52,6 @@ model User {
   @@map("users")
 }
 
-// ---------------------------------------------------------------------------
-// Category — drives product organization & optional attribute schema
-// attributeSchema: [{ "key": "size", "label": "Size", "type": "text", "required": false }]
-// ---------------------------------------------------------------------------
-
 model Category {
   id              String   @id @default(cuid())
   name            String
@@ -83,17 +70,13 @@ model Category {
   @@map("categories")
 }
 
-// ---------------------------------------------------------------------------
-// Product — flexible metadata per category (no hardcoded product attributes)
-// images: [{ "url": "...", "publicId": "...", "alt": "..." }]
-// metadata: { "color": "Black", "storage": "256GB" } — keys from category schema
-// ---------------------------------------------------------------------------
-
 model Product {
   id                String   @id @default(cuid())
   name              String
   slug              String   @unique
+  shortDescription  String?  @db.VarChar(500)
   description       String?  @db.Text
+  descriptionHtml   String?  @db.Text
   price             Decimal  @db.Decimal(10, 2)
   compareAtPrice    Decimal? @db.Decimal(10, 2)
   sku               String?  @unique
@@ -101,13 +84,17 @@ model Product {
   lowStockThreshold Int      @default(5)
   images            Json     @default("[]")
   metadata          Json     @default("{}")
+  tags              String[] @default([])
+  metaTitle         String?  @db.VarChar(70)
+  metaDescription   String?  @db.VarChar(160)
   isActive          Boolean  @default(true)
   isFeatured        Boolean  @default(false)
   categoryId        String
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  category      Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category      Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  variants      ProductVariant[]
   cartItems     CartItem[]
   wishlistItems WishlistItem[]
   orderItems    OrderItem[]
@@ -116,12 +103,29 @@ model Product {
   @@index([isActive, isFeatured])
   @@index([name])
   @@index([stock])
+  @@index([tags])
   @@map("products")
 }
 
-// ---------------------------------------------------------------------------
-// Cart
-// ---------------------------------------------------------------------------
+model ProductVariant {
+  id         String   @id @default(cuid())
+  productId  String
+  name       String
+  sku        String?  @unique
+  price      Decimal? @db.Decimal(10, 2)
+  stock      Int      @default(0)
+  attributes Json     @default("{}")
+  images     Json     @default("[]")
+  isActive   Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_variants")
+}
 
 model Cart {
   id        String   @id @default(cuid())
@@ -151,10 +155,6 @@ model CartItem {
   @@map("cart_items")
 }
 
-// ---------------------------------------------------------------------------
-// Wishlist
-// ---------------------------------------------------------------------------
-
 model Wishlist {
   id        String   @id @default(cuid())
   userId    String   @unique
@@ -181,10 +181,6 @@ model WishlistItem {
   @@index([productId])
   @@map("wishlist_items")
 }
-
-// ---------------------------------------------------------------------------
-// Order (future phases)
-// ---------------------------------------------------------------------------
 
 model Order {
   id            String        @id @default(cuid())

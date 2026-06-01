@@ -8,6 +8,7 @@ import { siteConfig } from "@/config/site";
 import { formatPrice } from "@/lib/format";
 import { ROUTES } from "@/lib/constants/routes";
 import {
+  getEffectiveStock,
   getProductBySlug,
   parseProductImages,
 } from "@/lib/services/catalog.service";
@@ -23,9 +24,12 @@ export async function generateMetadata({
   if (!product) return { title: "Product not found" };
 
   return {
-    title: product.name,
+    title: product.metaTitle ?? product.name,
     description:
-      product.description?.slice(0, 160) ?? `${product.name} at ${siteConfig.brand.name}`,
+      product.metaDescription ??
+      product.shortDescription ??
+      product.description?.slice(0, 160) ??
+      `${product.name} at ${siteConfig.brand.name}`,
   };
 }
 
@@ -42,7 +46,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const compareAt = product.compareAtPrice
     ? Number(product.compareAtPrice)
     : null;
-  const outOfStock = product.stock <= 0;
+  const outOfStock = getEffectiveStock(product) <= 0;
+  const tags = product.tags ?? [];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -108,6 +113,22 @@ export default async function ProductDetailPage({ params }: PageProps) {
             {product.name}
           </h1>
 
+          {product.shortDescription && (
+            <p className="mt-2 text-lg text-muted-foreground">
+              {product.shortDescription}
+            </p>
+          )}
+
+          {tags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <Badge key={tag} variant="muted">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          )}
+
           <div className="mt-4 flex items-baseline gap-3">
             <span className="text-3xl font-bold text-primary">
               {formatPrice(price)}
@@ -127,15 +148,40 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
           {!outOfStock && (
             <p className="mt-2 text-sm text-muted-foreground">
-              {product.stock} in stock
+              {getEffectiveStock(product)} in stock
             </p>
           )}
 
-          {product.description && (
+          {product.variants.length > 0 && (
+            <div className="mt-6">
+              <p className="text-sm font-semibold text-foreground">Options</p>
+              <ul className="mt-2 space-y-2">
+                {product.variants.map((v) => (
+                  <li
+                    key={v.id}
+                    className="flex justify-between rounded-xl border border-border bg-card px-4 py-2 text-sm"
+                  >
+                    <span>{v.name}</span>
+                    <span className="text-muted-foreground">
+                      {v.stock > 0 ? `${v.stock} available` : "Out of stock"}
+                      {v.price && ` · ${formatPrice(Number(v.price))}`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {product.descriptionHtml ? (
+            <div
+              className="prose prose-sm mt-6 max-w-none text-muted-foreground"
+              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+            />
+          ) : product.description ? (
             <p className="mt-6 leading-relaxed text-muted-foreground">
               {product.description}
             </p>
-          )}
+          ) : null}
 
           {schema.length > 0 && Object.keys(metadata).length > 0 && (
             <dl className="mt-8 space-y-3 rounded-2xl border border-border bg-card p-6">

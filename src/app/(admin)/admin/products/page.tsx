@@ -2,37 +2,45 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { deleteProduct } from "@/actions/products";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { DeleteButton } from "@/components/admin/delete-button";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 import { ROUTES } from "@/lib/constants/routes";
 import { db } from "@/lib/db";
-import { getPrimaryImage, parseProductImages } from "@/lib/services/catalog.service";
+import {
+  getEffectiveStock,
+  getPrimaryImage,
+  parseProductImages,
+} from "@/lib/services/catalog.service";
 
 export default async function AdminProductsPage() {
   const products = await db.product.findMany({
     orderBy: { createdAt: "desc" },
-    include: { category: { select: { name: true } } },
+    include: {
+      category: { select: { name: true } },
+      variants: { select: { stock: true, isActive: true } },
+      _count: { select: { variants: true } },
+    },
   });
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">Products</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {products.length} total
-          </p>
-        </div>
-        <Link href={`${ROUTES.adminProducts}/new`}>
-          <Button>Add product</Button>
-        </Link>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Products"
+        description="Full catalog control: images, variants, attributes, tags, and SEO."
+        actions={
+          <Link href={`${ROUTES.adminProducts}/new`}>
+            <Button>Add product</Button>
+          </Link>
+        }
+      />
 
-      <div className="mt-8 overflow-x-auto rounded-2xl border border-border bg-card">
-        <table className="w-full min-w-[720px] text-left text-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <table className="w-full min-w-[800px] text-left text-sm">
           <thead>
-            <tr className="border-b border-border bg-muted/30">
+            <tr className="border-b border-border bg-muted/40">
               <th className="px-4 py-3 font-medium">Product</th>
               <th className="px-4 py-3 font-medium">Category</th>
               <th className="px-4 py-3 font-medium">Price</th>
@@ -43,9 +51,9 @@ export default async function AdminProductsPage() {
           </thead>
           <tbody>
             {products.map((product) => {
-              const img =
-                getPrimaryImage(parseProductImages(product.images)) ??
-                parseProductImages(product.images)[0];
+              const images = parseProductImages(product.images);
+              const img = getPrimaryImage(images) ?? images[0];
+              const stock = getEffectiveStock(product);
 
               return (
                 <tr
@@ -54,18 +62,25 @@ export default async function AdminProductsPage() {
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
-                        {img ? (
+                      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-muted">
+                        {img && (
                           <Image
                             src={img.url}
                             alt=""
                             fill
                             className="object-cover"
-                            sizes="40px"
+                            sizes="44px"
                           />
-                        ) : null}
+                        )}
                       </div>
-                      <span className="font-medium">{product.name}</span>
+                      <div>
+                        <p className="font-medium">{product.name}</p>
+                        {product.tags.length > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            {product.tags.slice(0, 3).join(", ")}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
@@ -74,22 +89,27 @@ export default async function AdminProductsPage() {
                   <td className="px-4 py-3">
                     {formatPrice(Number(product.price))}
                   </td>
-                  <td className="px-4 py-3">{product.stock}</td>
                   <td className="px-4 py-3">
-                    {product.isActive ? "Active" : "Draft"}
+                    {stock}
+                    {product._count.variants > 0 && (
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        ({product._count.variants} variants)
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge variant={product.isActive ? "default" : "muted"}>
+                      {product.isActive ? "Published" : "Draft"}
+                    </Badge>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <Link
-                        href={`${ROUTES.adminProducts}/${product.id}/edit`}
-                      >
+                      <Link href={`${ROUTES.adminProducts}/${product.id}/edit`}>
                         <Button variant="outline" size="sm">
                           Edit
                         </Button>
                       </Link>
-                      <DeleteButton
-                        onDelete={deleteProduct.bind(null, product.id)}
-                      />
+                      <DeleteButton onDelete={deleteProduct.bind(null, product.id)} />
                     </div>
                   </td>
                 </tr>
@@ -98,7 +118,7 @@ export default async function AdminProductsPage() {
           </tbody>
         </table>
         {products.length === 0 && (
-          <p className="p-8 text-center text-muted-foreground">
+          <p className="p-10 text-center text-muted-foreground">
             No products yet.
           </p>
         )}

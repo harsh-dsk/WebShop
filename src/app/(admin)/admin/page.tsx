@@ -1,73 +1,132 @@
 import Link from "next/link";
+import {
+  AlertTriangle,
+  FolderTree,
+  Package,
+  PackageX,
+  Warehouse,
+} from "lucide-react";
 
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { StatsCard } from "@/components/admin/stats-card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { siteConfig } from "@/config/site";
 import { ROUTES } from "@/lib/constants/routes";
-import { db } from "@/lib/db";
+import { getAdminDashboardStats } from "@/lib/services/admin.service";
 
-export default async function AdminOverviewPage() {
-  const [productCount, categoryCount, products] = await Promise.all([
-    db.product.count(),
-    db.category.count(),
-    db.product.findMany({
-      select: { stock: true, lowStockThreshold: true },
-    }),
-  ]);
-
-  const lowStockCount = products.filter(
-    (p) => p.stock > 0 && p.stock <= p.lowStockThreshold,
-  ).length;
+export default async function AdminDashboardPage() {
+  const stats = await getAdminDashboardStats();
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-primary">Overview</h1>
-      <p className="mt-1 text-muted-foreground">
-        Manage your store catalog and inventory
-      </p>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Dashboard"
+        description={`Manage catalog and inventory for ${siteConfig.brand.name}. Branding is configured in site config by your developer.`}
+        actions={
+          <Link href={`${ROUTES.adminProducts}/new`}>
+            <Button>Add product</Button>
+          </Link>
+        }
+      />
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Products</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{productCount}</p>
-            <Link
-              href={ROUTES.adminProducts}
-              className="mt-2 inline-block text-sm text-accent hover:underline"
-            >
-              Manage →
-            </Link>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Categories</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{categoryCount}</p>
-            <Link
-              href={ROUTES.adminCategories}
-              className="mt-2 inline-block text-sm text-accent hover:underline"
-            >
-              Manage →
-            </Link>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Low stock</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{lowStockCount}</p>
-            <Link
-              href={ROUTES.adminInventory}
-              className="mt-2 inline-block text-sm text-accent hover:underline"
-            >
-              Inventory →
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatsCard
+          label="Total products"
+          value={stats.productCount}
+          href={ROUTES.adminProducts}
+          linkLabel="Manage products"
+          icon={Package}
+        />
+        <StatsCard
+          label="Active products"
+          value={stats.activeProductCount}
+          href={ROUTES.adminProducts}
+          icon={Package}
+        />
+        <StatsCard
+          label="Categories"
+          value={stats.categoryCount}
+          href={ROUTES.adminCategories}
+          linkLabel="Manage categories"
+          icon={FolderTree}
+        />
+        <StatsCard
+          label="Units in stock"
+          value={stats.totalUnits}
+          href={ROUTES.adminInventory}
+          linkLabel="Inventory"
+          icon={Warehouse}
+        />
       </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <StatsCard
+          label="Low stock"
+          value={stats.lowStockCount}
+          href={ROUTES.adminInventory}
+          linkLabel="Review inventory"
+          icon={AlertTriangle}
+          variant="warning"
+        />
+        <StatsCard
+          label="Out of stock"
+          value={stats.outOfStock}
+          href={ROUTES.adminInventory}
+          icon={PackageX}
+          variant="danger"
+        />
+      </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Recently added</CardTitle>
+          <Link href={ROUTES.adminProducts}>
+            <Button variant="outline" size="sm">
+              View all
+            </Button>
+          </Link>
+        </CardHeader>
+        <CardContent>
+          {stats.recentProducts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No products yet. Create your first product to get started.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {stats.recentProducts.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0"
+                >
+                  <div>
+                    <Link
+                      href={`${ROUTES.adminProducts}/${p.id}/edit`}
+                      className="font-medium hover:text-primary"
+                    >
+                      {p.name}
+                    </Link>
+                    <p className="text-xs text-muted-foreground">
+                      {p.category.name}
+                      {p._count.variants > 0 &&
+                        ` · ${p._count.variants} variant(s)`}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={p.isActive ? "default" : "muted"}>
+                      {p.isActive ? "Published" : "Draft"}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      Stock: {p.stock}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

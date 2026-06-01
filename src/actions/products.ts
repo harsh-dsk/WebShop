@@ -8,6 +8,8 @@ import { db } from "@/lib/db";
 import { ROUTES } from "@/lib/constants/routes";
 import { uniqueSlug } from "@/lib/slug";
 import {
+  parseTagsInput,
+  parseVariantsJson,
   productSchema,
   validateMetadataAgainstSchema,
 } from "@/lib/validations/product";
@@ -31,15 +33,6 @@ function parseImages(raw: unknown): ProductImage[] {
 }
 
 function parseMetadataFromFormData(formData: FormData): Record<string, unknown> {
-  const raw = formData.get("metadata");
-  if (typeof raw === "string" && raw.trim()) {
-    try {
-      return JSON.parse(raw) as Record<string, unknown>;
-    } catch {
-      /* fall through */
-    }
-  }
-
   const metadata: Record<string, unknown> = {};
   for (const [key, value] of formData.entries()) {
     if (key.startsWith("metadata.")) {
@@ -47,6 +40,82 @@ function parseMetadataFromFormData(formData: FormData): Record<string, unknown> 
     }
   }
   return metadata;
+}
+
+function parseProductFormData(formData: FormData) {
+  return {
+    name: formData.get("name"),
+    slug: formData.get("slug") || undefined,
+
+    shortDescription: formData.get("shortDescription") || null,
+    description: formData.get("description") || null,
+    descriptionHtml: formData.get("descriptionHtml") || null,
+
+    price: formData.get("price"),
+    compareAtPrice: formData.get("compareAtPrice") || null,
+
+    sku: formData.get("sku") || null,
+
+    stock: formData.get("stock") ?? "0",
+
+    lowStockThreshold:
+      formData.get("lowStockThreshold") ?? "0",
+
+    categoryId: formData.get("categoryId"),
+
+    isActive:
+      formData.get("isActive") === "on" ||
+      formData.get("isActive") === "true",
+
+    isFeatured:
+      formData.get("isFeatured") === "on" ||
+      formData.get("isFeatured") === "true",
+
+    images: parseImages(formData.get("images")),
+
+    tags: parseTagsInput(
+      String(formData.get("tags") ?? "")
+    ),
+
+    metaTitle: formData.get("metaTitle") || null,
+    metaDescription: formData.get("metaDescription") || null,
+
+    variants: parseVariantsJson(
+      formData.get("variants")
+    ),
+  };
+}
+
+async function syncVariants(
+  productId: string,
+  variants: ReturnType<typeof parseVariantsJson>,
+) {
+  await db.productVariant.deleteMany({ where: { productId } });
+
+  if (variants.length === 0) return 0;
+
+  await db.productVariant.createMany({
+    data: variants.map((v, index) => ({
+      productId,
+      name: v.name,
+      sku: v.sku || null,
+      price: v.price ?? null,
+      stock: v.stock,
+      attributes: v.attributes,
+      isActive: v.isActive,
+      sortOrder: v.sortOrder ?? index,
+    })),
+  });
+
+  return variants.reduce((sum, v) => sum + (v.isActive ? v.stock : 0), 0);
+}
+
+function revalidateProductPaths(slug?: string) {
+  revalidatePath(ROUTES.products);
+  revalidatePath(ROUTES.adminProducts);
+  revalidatePath(ROUTES.adminInventory);
+  revalidatePath(ROUTES.admin);
+  if (slug) revalidatePath(`${ROUTES.products}/${slug}`);
 }
 
 export async function createProduct(
@@ -60,31 +129,23 @@ export async function createProduct(
   });
   if (!category) return { error: "Category not found" };
 
-  const rawMetadata = parseMetadataFromFormData(formData);
   let metadata: Record<string, string | number | boolean> = {};
-
   try {
     metadata = validateMetadataAgainstSchema(
-      rawMetadata,
+      parseMetadataFromFormData(formData),
       category.attributeSchema as AttributeField[],
     );
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Invalid metadata" };
+    return { error: e instanceof Error ? e.message : "Invalid attributes" };
   }
 
+  console.log(
+  "CREATE FORM DATA:",
+  Object.fromEntries(formData.entries())
+);
+
   const parsed = productSchema.safeParse({
-    name: formData.get("name"),
-    slug: formData.get("slug") || undefined,
-    description: formData.get("description") || null,
-    price: formData.get("price"),
-    compareAtPrice: formData.get("compareAtPrice") || null,
-    sku: formData.get("sku") || null,
-    stock: formData.get("stock"),
-    lowStockThreshold: formData.get("lowStockThreshold"),
-    categoryId: formData.get("categoryId"),
-    isActive: formData.get("isActive") === "on" || formData.get("isActive") === "true",
-    isFeatured: formData.get("isFeatured") === "on" || formData.get("isFeatured") === "true",
-    images: parseImages(formData.get("images")),
+    ...parseProductFormData(formData),
     metadata,
   });
 
@@ -96,35 +157,45 @@ export async function createProduct(
   const slug =
     data.slug ||
     (await uniqueSlug(data.name, async (s) => {
-      const found = await db.product.findUnique({ where: { slug: s } });
-      return Boolean(found);
+      return Boolean(await db.product.findUnique({ where: { slug: s } }));
     }));
 
-  await db.product.create({
+  const variantStock = data.variants.reduce(
+    (sum, v) => sum + (v.isActive ? v.stock : 0),
+    0,
+  );
+  const stock = data.variants.length > 0 ? variantStock : data.stock;
+
+  const product = await db.product.create({
     data: {
       name: data.name,
       slug,
+      shortDescription: data.shortDescription || null,
       description: data.description || null,
+      descriptionHtml: data.descriptionHtml || null,
       price: data.price,
       compareAtPrice: data.compareAtPrice ?? null,
       sku: data.sku || null,
-      stock: data.stock,
+      stock,
       lowStockThreshold: data.lowStockThreshold,
       categoryId: data.categoryId,
       isActive: data.isActive,
       isFeatured: data.isFeatured,
       images: data.images,
       metadata: data.metadata,
+      tags: data.tags,
+      metaTitle: data.metaTitle || null,
+      metaDescription: data.metaDescription || null,
     },
   });
 
-  revalidatePath(ROUTES.products);
-  revalidatePath(ROUTES.adminProducts);
-  revalidatePath(ROUTES.adminInventory);
+  await syncVariants(product.id, data.variants);
+  revalidateProductPaths(slug);
   redirect(ROUTES.adminProducts);
 }
 
 export async function updateProduct(
+  
   id: string,
   _prev: ActionState,
   formData: FormData,
@@ -139,31 +210,24 @@ export async function updateProduct(
   });
   if (!category) return { error: "Category not found" };
 
-  const rawMetadata = parseMetadataFromFormData(formData);
   let metadata: Record<string, string | number | boolean> = {};
-
   try {
     metadata = validateMetadataAgainstSchema(
-      rawMetadata,
+      parseMetadataFromFormData(formData),
       category.attributeSchema as AttributeField[],
     );
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Invalid metadata" };
+    return { error: e instanceof Error ? e.message : "Invalid attributes" };
   }
 
+  console.log(
+  "UPDATE FORM DATA:",
+  Object.fromEntries(formData.entries())
+);
+
+
   const parsed = productSchema.safeParse({
-    name: formData.get("name"),
-    slug: formData.get("slug"),
-    description: formData.get("description") || null,
-    price: formData.get("price"),
-    compareAtPrice: formData.get("compareAtPrice") || null,
-    sku: formData.get("sku") || null,
-    stock: formData.get("stock"),
-    lowStockThreshold: formData.get("lowStockThreshold"),
-    categoryId: formData.get("categoryId"),
-    isActive: formData.get("isActive") === "on" || formData.get("isActive") === "true",
-    isFeatured: formData.get("isFeatured") === "on" || formData.get("isFeatured") === "true",
-    images: parseImages(formData.get("images")),
+    ...parseProductFormData(formData),
     metadata,
   });
 
@@ -179,40 +243,45 @@ export async function updateProduct(
   });
   if (conflict) return { error: "Slug already in use" };
 
+  const variantStock = data.variants.reduce(
+    (sum, v) => sum + (v.isActive ? v.stock : 0),
+    0,
+  );
+  const stock = data.variants.length > 0 ? variantStock : data.stock;
+
   await db.product.update({
     where: { id },
     data: {
       name: data.name,
       slug,
+      shortDescription: data.shortDescription || null,
       description: data.description || null,
+      descriptionHtml: data.descriptionHtml || null,
       price: data.price,
       compareAtPrice: data.compareAtPrice ?? null,
       sku: data.sku || null,
-      stock: data.stock,
+      stock,
       lowStockThreshold: data.lowStockThreshold,
       categoryId: data.categoryId,
       isActive: data.isActive,
       isFeatured: data.isFeatured,
       images: data.images,
       metadata: data.metadata,
+      tags: data.tags,
+      metaTitle: data.metaTitle || null,
+      metaDescription: data.metaDescription || null,
     },
   });
 
-  revalidatePath(ROUTES.products);
-  revalidatePath(`${ROUTES.products}/${slug}`);
-  revalidatePath(ROUTES.adminProducts);
-  revalidatePath(ROUTES.adminInventory);
+  await syncVariants(id, data.variants);
+  revalidateProductPaths(slug);
   redirect(ROUTES.adminProducts);
 }
 
 export async function deleteProduct(id: string): Promise<ActionState> {
   await requireStoreStaff();
-
   await db.product.delete({ where: { id } });
-
-  revalidatePath(ROUTES.products);
-  revalidatePath(ROUTES.adminProducts);
-  revalidatePath(ROUTES.adminInventory);
+  revalidateProductPaths();
   return { success: true };
 }
 
@@ -221,15 +290,44 @@ export async function updateProductStock(
   stock: number,
 ): Promise<ActionState> {
   await requireStoreStaff();
-
   if (stock < 0) return { error: "Stock cannot be negative" };
 
-  await db.product.update({
+  const product = await db.product.findUnique({
     where: { id },
+    include: { _count: { select: { variants: true } } },
+  });
+  if (!product) return { error: "Product not found" };
+  if (product._count.variants > 0) {
+    return { error: "Update stock on variants for this product" };
+  }
+
+  await db.product.update({ where: { id }, data: { stock } });
+  revalidateProductPaths(product.slug);
+  return { success: true };
+}
+
+export async function updateVariantStock(
+  variantId: string,
+  stock: number,
+): Promise<ActionState> {
+  await requireStoreStaff();
+  if (stock < 0) return { error: "Stock cannot be negative" };
+
+  const variant = await db.productVariant.update({
+    where: { id: variantId },
     data: { stock },
+    include: { product: { include: { variants: true } } },
   });
 
-  revalidatePath(ROUTES.adminInventory);
-  revalidatePath(ROUTES.products);
+  const totalStock = variant.product.variants
+    .filter((v) => v.isActive)
+    .reduce((sum, v) => sum + v.stock, 0);
+
+  await db.product.update({
+    where: { id: variant.productId },
+    data: { stock: totalStock },
+  });
+
+  revalidateProductPaths(variant.product.slug);
   return { success: true };
 }

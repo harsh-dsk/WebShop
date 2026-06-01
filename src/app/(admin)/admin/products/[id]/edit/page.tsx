@@ -1,35 +1,63 @@
 import { notFound } from "next/navigation";
 
 import { ProductForm } from "@/components/admin/product-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { db } from "@/lib/db";
 
-type PageProps = { params: Promise<{ id: string }> };
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
 
 export default async function EditProductPage({ params }: PageProps) {
   const { id } = await params;
 
-  const [product, categories] = await Promise.all([
-    db.product.findUnique({ where: { id } }),
+  const [rawProduct, categories] = await Promise.all([
+    db.product.findUnique({
+      where: { id },
+      include: {
+        variants: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+        },
+      },
+    }),
     db.category.findMany({
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, attributeSchema: true },
+      orderBy: {
+        name: "asc",
+      },
+      select: {
+        id: true,
+        name: true,
+        attributeSchema: true,
+      },
     }),
   ]);
 
-  if (!product) notFound();
+  if (!rawProduct) notFound();
+
+  const product = {
+    ...rawProduct,
+    price: Number(rawProduct.price),
+    compareAtPrice: rawProduct.compareAtPrice
+      ? Number(rawProduct.compareAtPrice)
+      : null,
+    variants: rawProduct.variants.map((variant) => ({
+      ...variant,
+      price: Number(variant.price),
+      compareAtPrice: variant.compareAtPrice
+        ? Number(variant.compareAtPrice)
+        : null,
+    })),
+  };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-primary">Edit product</h1>
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>{product.name}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProductForm categories={categories} product={product} />
-        </CardContent>
-      </Card>
+    <div className="space-y-8">
+      <AdminPageHeader title={`Edit: ${product.name}`} />
+      <ProductForm
+        categories={categories}
+        product={product}
+      />
     </div>
   );
 }

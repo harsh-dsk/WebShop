@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { deleteCategory } from "@/actions/categories";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/constants/routes";
@@ -13,23 +14,21 @@ export default async function AdminCategoriesPage() {
   });
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">Categories</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Organize products with flexible attribute schemas
-          </p>
-        </div>
-        <Link href={`${ROUTES.adminCategories}/new`}>
-          <Button>Add category</Button>
-        </Link>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Categories"
+        description="Organize your catalog. Each category can define custom product attribute fields for any industry."
+        actions={
+          <Link href={`${ROUTES.adminCategories}/new`}>
+            <Button>Add category</Button>
+          </Link>
+        }
+      />
 
-      <div className="mt-8 overflow-x-auto rounded-2xl border border-border bg-card">
-        <table className="w-full min-w-[600px] text-left text-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <table className="w-full min-w-[640px] text-left text-sm">
           <thead>
-            <tr className="border-b border-border bg-muted/30">
+            <tr className="border-b border-border bg-muted/40">
               <th className="px-4 py-3 font-medium">Name</th>
               <th className="px-4 py-3 font-medium">Slug</th>
               <th className="px-4 py-3 font-medium">Products</th>
@@ -44,7 +43,7 @@ export default async function AdminCategoriesPage() {
                 <td className="px-4 py-3 text-muted-foreground">{cat.slug}</td>
                 <td className="px-4 py-3">{cat._count.products}</td>
                 <td className="px-4 py-3">
-                  {cat.isActive ? "Active" : "Inactive"}
+                  {cat.isActive ? "Published" : "Hidden"}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
@@ -53,9 +52,7 @@ export default async function AdminCategoriesPage() {
                         Edit
                       </Button>
                     </Link>
-                    <DeleteButton
-                      onDelete={deleteCategory.bind(null, cat.id)}
-                    />
+                    <DeleteButton onDelete={deleteCategory.bind(null, cat.id)} />
                   </div>
                 </td>
               </tr>
@@ -63,8 +60,8 @@ export default async function AdminCategoriesPage() {
           </tbody>
         </table>
         {categories.length === 0 && (
-          <p className="p-8 text-center text-muted-foreground">
-            No categories yet.
+          <p className="p-10 text-center text-muted-foreground">
+            No categories yet. Create one to start adding products.
           </p>
         )}
       </div>

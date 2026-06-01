@@ -73,7 +73,10 @@ export async function queryProducts(params: CatalogQuery = {}) {
   const [items, total] = await Promise.all([
     db.product.findMany({
       where,
-      include: { category: { select: { id: true, name: true, slug: true } } },
+      include: {
+        category: { select: { id: true, name: true, slug: true } },
+        variants: { select: { stock: true, isActive: true } },
+      },
       orderBy: buildOrderBy(sort),
       skip,
       take: pageSize,
@@ -105,8 +108,24 @@ export async function getProductBySlug(slug: string, includeInactive = false) {
           attributeSchema: true,
         },
       },
+      variants: {
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
+}
+
+export function getEffectiveStock(product: {
+  stock: number;
+  variants?: { stock: number; isActive: boolean }[];
+}): number {
+  if (product.variants && product.variants.length > 0) {
+    return product.variants
+      .filter((v) => v.isActive)
+      .reduce((sum, v) => sum + v.stock, 0);
+  }
+  return product.stock;
 }
 
 export async function getActiveCategories() {

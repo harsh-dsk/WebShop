@@ -11,11 +11,13 @@ cloudinary.config({
 
 export async function uploadProductImage(
   file: File,
-  productId?: string,
+  options?: { productId?: string; subfolder?: string },
 ): Promise<ProductImage> {
-  const folder =
-    process.env.CLOUDINARY_FOLDER ?? "store/products";
-  const path = productId ? `${folder}/${productId}` : folder;
+  const base = process.env.CLOUDINARY_FOLDER ?? "store";
+  const segment = options?.subfolder ?? "products";
+  const path = options?.productId
+    ? `${base}/${segment}/${options.productId}`
+    : `${base}/${segment}`;
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
