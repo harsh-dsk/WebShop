@@ -43,12 +43,9 @@ export default async function EditProductPage({ params }: PageProps) {
       ? Number(rawProduct.compareAtPrice)
       : null,
     variants: rawProduct.variants.map((variant) => ({
-      ...variant,
-      price: Number(variant.price),
-      compareAtPrice: variant.compareAtPrice
-        ? Number(variant.compareAtPrice)
-        : null,
-    })),
+  ...variant,
+  price: variant.price ? Number(variant.price) : null,
+})),
   };
 
   return (
