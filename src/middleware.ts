@@ -8,6 +8,8 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/products(.*)",
+  "/categories(.*)",
   "/api/webhooks(.*)",
 ]);
 
@@ -20,6 +22,8 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
+
+const STAFF_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
 export default clerkMiddleware(async (auth, request) => {
   const { userId, sessionClaims, redirectToSignIn } = await auth();
@@ -40,9 +44,7 @@ export default clerkMiddleware(async (auth, request) => {
       | undefined;
     const role = metadata?.role;
 
-    // Block only when metadata explicitly denies admin.
-    // If metadata is missing, admin layout checks the database (requireAdmin).
-    if (role && role !== "ADMIN") {
+    if (role && !STAFF_ROLES.has(role)) {
       const homeUrl = new URL(ROUTES.home, request.url);
       return NextResponse.redirect(homeUrl);
     }

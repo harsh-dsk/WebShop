@@ -75,11 +75,11 @@ export default async function ProfilePage() {
           )}
         </dl>
 
-        {sessionClaims?.publicMetadata && (
+        {sessionClaims?.publicMetadata != null ? (
           <p className="mt-4 text-xs text-muted-foreground">
             Clerk public metadata is synced for middleware role checks.
           </p>
-        )}
+        ) : null}
       </div>
     </section>
   );

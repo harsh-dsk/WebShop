@@ -6,15 +6,19 @@ import { syncClerkPublicMetadata, upsertUserFromClerk } from "@/lib/clerk-sync";
 import { db } from "@/lib/db";
 import { ROUTES } from "@/lib/constants/routes";
 
+export function isStoreStaff(role: Role): boolean {
+  return role === Role.ADMIN || role === Role.SUPER_ADMIN;
+}
+
+export function isSuperAdmin(role: Role): boolean {
+  return role === Role.SUPER_ADMIN;
+}
+
 export async function getClerkUserId(): Promise<string | null> {
   const { userId } = await auth();
   return userId;
 }
 
-/**
- * Returns the database user for the current Clerk session.
- * Creates/syncs the user on first access if the webhook has not run yet.
- */
 export async function getCurrentUser(): Promise<User | null> {
   const { userId } = await auth();
   if (!userId) return null;
@@ -39,9 +43,10 @@ export async function requireUser(): Promise<User> {
   return user;
 }
 
-export async function requireAdmin(): Promise<User> {
+/** Store owner or platform developer — catalog & inventory admin */
+export async function requireStoreStaff(): Promise<User> {
   const user = await requireUser();
-  if (user.role !== Role.ADMIN) {
+  if (!isStoreStaff(user.role)) {
     redirect(ROUTES.home);
   }
 
@@ -53,8 +58,24 @@ export async function requireAdmin(): Promise<User> {
   return user;
 }
 
-export function isAdmin(user: User): boolean {
-  return user.role === Role.ADMIN;
+/** Platform developer only — branding & global settings */
+export async function requireSuperAdmin(): Promise<User> {
+  const user = await requireUser();
+  if (!isSuperAdmin(user.role)) {
+    redirect(ROUTES.home);
+  }
+
+  await syncClerkPublicMetadata(user.clerkId, {
+    role: user.role,
+    dbUserId: user.id,
+  });
+
+  return user;
+}
+
+/** @deprecated Use requireStoreStaff */
+export async function requireAdmin(): Promise<User> {
+  return requireStoreStaff();
 }
 
 export async function getSessionSummary() {
@@ -67,6 +88,7 @@ export async function getSessionSummary() {
     clerkUserId: userId,
     user,
     role: user?.role ?? null,
-    isAdmin: user?.role === Role.ADMIN,
+    isStoreStaff: user ? isStoreStaff(user.role) : false,
+    isSuperAdmin: user ? isSuperAdmin(user.role) : false,
   };
 }

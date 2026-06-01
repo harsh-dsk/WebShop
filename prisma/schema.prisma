@@ -1,5 +1,5 @@
-// FreshMart — PostgreSQL schema (Neon)
-// Models: User, Category, Product, Cart, CartItem, Wishlist, WishlistItem, Order, OrderItem
+// Reusable ecommerce platform — PostgreSQL (Neon)
+// Customize per deployment via src/config/site.ts
 
 generator client {
   provider = "prisma-client-js"
@@ -9,6 +9,7 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 // ---------------------------------------------------------------------------
 // Enums
 // ---------------------------------------------------------------------------
@@ -16,6 +17,7 @@ datasource db {
 enum Role {
   CUSTOMER
   ADMIN
+  SUPER_ADMIN
 }
 
 enum OrderStatus {
@@ -59,19 +61,21 @@ model User {
 }
 
 // ---------------------------------------------------------------------------
-// Category
+// Category — drives product organization & optional attribute schema
+// attributeSchema: [{ "key": "size", "label": "Size", "type": "text", "required": false }]
 // ---------------------------------------------------------------------------
 
 model Category {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?  @db.Text
-  imageUrl    String?
-  sortOrder   Int      @default(0)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  description     String?  @db.Text
+  imageUrl        String?
+  sortOrder       Int      @default(0)
+  isActive        Boolean  @default(true)
+  attributeSchema Json     @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   products Product[]
 
@@ -80,9 +84,9 @@ model Category {
 }
 
 // ---------------------------------------------------------------------------
-// Product
-// images: JSON array of Cloudinary assets
-//   [{ "url": "...", "publicId": "...", "alt": "..." }]
+// Product — flexible metadata per category (no hardcoded product attributes)
+// images: [{ "url": "...", "publicId": "...", "alt": "..." }]
+// metadata: { "color": "Black", "storage": "256GB" } — keys from category schema
 // ---------------------------------------------------------------------------
 
 model Product {
@@ -95,8 +99,8 @@ model Product {
   sku               String?  @unique
   stock             Int      @default(0)
   lowStockThreshold Int      @default(5)
-  unit              String?  // e.g. "kg", "pack", "L"
   images            Json     @default("[]")
+  metadata          Json     @default("{}")
   isActive          Boolean  @default(true)
   isFeatured        Boolean  @default(false)
   categoryId        String
@@ -116,7 +120,7 @@ model Product {
 }
 
 // ---------------------------------------------------------------------------
-// Cart (one per user)
+// Cart
 // ---------------------------------------------------------------------------
 
 model Cart {
@@ -148,7 +152,7 @@ model CartItem {
 }
 
 // ---------------------------------------------------------------------------
-// Wishlist (one per user)
+// Wishlist
 // ---------------------------------------------------------------------------
 
 model Wishlist {
@@ -179,17 +183,16 @@ model WishlistItem {
 }
 
 // ---------------------------------------------------------------------------
-// Order (checkout + Razorpay)
+// Order (future phases)
 // ---------------------------------------------------------------------------
 
 model Order {
-  id          String        @id @default(cuid())
-  orderNumber String        @unique // e.g. FM-20250601-A1B2C3
-  userId      String
-  status      OrderStatus   @default(PENDING)
+  id            String        @id @default(cuid())
+  orderNumber   String        @unique
+  userId        String
+  status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
 
-  // Shipping snapshot
   shippingName       String
   shippingEmail      String
   shippingPhone      String
@@ -199,13 +202,11 @@ model Order {
   shippingPostalCode String
   shippingCountry    String  @default("IN")
 
-  // Amounts at time of order (INR)
   subtotal     Decimal @db.Decimal(10, 2)
   shippingCost Decimal @default(0) @db.Decimal(10, 2)
   tax          Decimal @default(0) @db.Decimal(10, 2)
   total        Decimal @db.Decimal(10, 2)
 
-  // Razorpay
   razorpayOrderId   String? @unique
   razorpayPaymentId String? @unique
   razorpaySignature String?
@@ -224,7 +225,6 @@ model Order {
   @@map("orders")
 }
 
-// Line items with product snapshot for history / refunds
 model OrderItem {
   id           String  @id @default(cuid())
   orderId      String

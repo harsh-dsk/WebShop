@@ -13,8 +13,8 @@ export type ClerkUserData = {
   imageUrl: string | null;
 };
 
-function getAdminEmails(): string[] {
-  return (process.env.ADMIN_EMAILS ?? "")
+function parseEmailList(envKey: string): string[] {
+  return (process.env[envKey] ?? "")
     .split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
@@ -22,9 +22,15 @@ function getAdminEmails(): string[] {
 
 export function resolveRoleForEmail(email: string): Role {
   const normalized = email.trim().toLowerCase();
-  if (getAdminEmails().includes(normalized)) {
+
+  if (parseEmailList("SUPER_ADMIN_EMAILS").includes(normalized)) {
+    return Role.SUPER_ADMIN;
+  }
+
+  if (parseEmailList("ADMIN_EMAILS").includes(normalized)) {
     return Role.ADMIN;
   }
+
   return Role.CUSTOMER;
 }
 

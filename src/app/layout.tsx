@@ -2,6 +2,8 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { ThemeVariables } from "@/components/brand/theme-variables";
+import { siteConfig } from "@/config/site";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 
 import "./globals.css";
@@ -18,10 +20,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "FreshMart",
-    template: "%s | FreshMart",
+    default: siteConfig.brand.name,
+    template: `%s | ${siteConfig.brand.name}`,
   },
-  description: "Fresh groceries delivered to your door",
+  description: siteConfig.brand.description,
 };
 
 export default function RootLayout({
@@ -32,6 +34,9 @@ export default function RootLayout({
   return (
     <ClerkProvider appearance={clerkAppearance}>
       <html lang="en">
+        <head>
+          <ThemeVariables />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} min-h-screen font-sans antialiased`}
         >
