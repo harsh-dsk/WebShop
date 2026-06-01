@@ -1,1 +1,35 @@
-/* FreshMart design tokens — implemented in a later step */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Cream background, beige cards, dark green primary, orange accent */
+    --background: 40 33% 97%;
+    --foreground: 155 30% 12%;
+
+    --card: 35 24% 92%;
+    --card-foreground: 155 30% 12%;
+
+    --primary: 158 43% 19%;
+    --primary-foreground: 40 33% 97%;
+
+    --accent: 22 95% 46%;
+    --accent-foreground: 40 33% 97%;
+
+    --muted: 35 18% 88%;
+    --muted-foreground: 155 12% 40%;
+
+    --border: 35 20% 85%;
+
+    --radius: 0.875rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}

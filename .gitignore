@@ -1,27 +1,27 @@
 # Dependencies
 /node_modules
-/.pnp
-.pnp.js
-
-# Testing
-/coverage
 
 # Next.js
 /.next/
-/out/
+/out
 
 # Production
 /build
+/dist
 
-# Environment
+# Environment Variables
 .env
-.env*.local
+.env.local
+.env.production
+.env.development.local
+.env.test.local
 !.env.example
 
-# Debug
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
 # Vercel
 .vercel
@@ -34,13 +34,14 @@ next-env.d.ts
 prisma/*.db
 prisma/*.db-journal
 
+# Clerk
+.clerk
+
 # IDE / OS
-.idea
 .vscode
+.idea
 *.swp
 .DS_Store
 Thumbs.db
-
-# Misc
-dist
-*.log
+# clerk configuration (can include secrets)
+/.clerk/
