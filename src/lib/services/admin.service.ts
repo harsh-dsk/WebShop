@@ -19,7 +19,12 @@ export async function getAdminDashboardStats() {
     db.category.count(),
     db.category.count({ where: { isActive: true } }),
     db.order.count(),
-    db.order.aggregate({ _sum: { total: true } }),
+    // Revenue should only include orders that are realistically fulfillable.
+    // Excludes CANCELLED and PENDING.
+    db.order.aggregate({
+      where: { status: { in: ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"] } },
+      _sum: { total: true },
+    }),
     db.order.count({ where: { status: "PENDING" } }),
     db.order.count({ where: { status: "DELIVERED" } }),
     db.product.findMany({

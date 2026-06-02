@@ -5,6 +5,7 @@ import { CatalogToolbar } from "@/components/shop/catalog-toolbar";
 import { Pagination } from "@/components/shop/pagination";
 import { ProductGrid } from "@/components/shop/product-grid";
 import { siteConfig } from "@/config/site";
+import { buildOpenGraphMetadata } from "@/lib/seo";
 import type { ProductSort } from "@/lib/services/catalog.service";
 import {
   getActiveCategories,
@@ -12,8 +13,13 @@ import {
 } from "@/lib/services/catalog.service";
 
 export const metadata: Metadata = {
-  title: "Products",
+  title: `Products | ${siteConfig.brand.name}`,
   description: `Browse all products at ${siteConfig.brand.name}`,
+  ...buildOpenGraphMetadata({
+    title: `Products | ${siteConfig.brand.name}`,
+    description: `Browse all products at ${siteConfig.brand.name}`,
+    urlPath: "/products",
+  }),
 };
 
 type SearchParams = Promise<{

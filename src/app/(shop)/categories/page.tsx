@@ -3,11 +3,17 @@ import Link from "next/link";
 
 import { siteConfig } from "@/config/site";
 import { ROUTES } from "@/lib/constants/routes";
+import { buildOpenGraphMetadata } from "@/lib/seo";
 import { getActiveCategories } from "@/lib/services/catalog.service";
 
 export const metadata: Metadata = {
-  title: "Categories",
+  title: `Categories | ${siteConfig.brand.name}`,
   description: `Shop by category at ${siteConfig.brand.name}`,
+  ...buildOpenGraphMetadata({
+    title: `Categories | ${siteConfig.brand.name}`,
+    description: `Shop by category at ${siteConfig.brand.name}`,
+    urlPath: "/categories",
+  }),
 };
 
 export default async function CategoriesPage() {

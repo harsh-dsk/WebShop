@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ProductGrid } from "@/components/shop/product-grid";
+import { RecentlyViewedProducts } from "@/components/shop/recently-viewed-products";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import { ROUTES } from "@/lib/constants/routes";
@@ -9,14 +10,19 @@ import { queryProducts, getActiveCategories } from "@/lib/services/catalog.servi
 export default async function HomePage() {
   const { hero, brand } = siteConfig;
 
-  const [{ items: featured }, categories] = await Promise.all([
+  const [{ items: featured }, { items: newArrivals }, categories] = await Promise.all([
     queryProducts({ featuredOnly: true, pageSize: 4 }),
+    queryProducts({ pageSize: 8, sort: "newest" }),
     getActiveCategories(),
   ]);
 
   return (
     <>
       <section className="relative overflow-hidden border-b border-border bg-card">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute -bottom-28 -right-24 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
+        </div>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
           <p className="text-sm font-medium uppercase tracking-wider text-accent">
             {hero.eyebrow}
@@ -68,6 +74,28 @@ export default async function HomePage() {
         </section>
       )}
 
+      {newArrivals.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold text-primary">New arrivals</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Freshly added products — updated regularly.
+              </p>
+            </div>
+            <Link
+              href={ROUTES.products}
+              className="text-sm font-medium text-accent hover:underline"
+            >
+              View all
+            </Link>
+          </div>
+          <div className="mt-6">
+            <ProductGrid products={newArrivals} />
+          </div>
+        </section>
+      )}
+
       {featured.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
           <div className="flex items-end justify-between gap-4">
@@ -84,6 +112,10 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <RecentlyViewedProducts />
+      </div>
 
       {featured.length === 0 && categories.length === 0 && (
         <section className="mx-auto max-w-6xl px-4 py-16 text-center sm:px-6">

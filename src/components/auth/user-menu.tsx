@@ -63,6 +63,11 @@ export function UserMenu({ role }: UserMenuProps) {
           Orders
         </Button>
       </Link>
+      <Link href={ROUTES.wishlist}>
+        <Button variant="outline" size="sm" className="hidden sm:inline-flex">
+          Wishlist
+        </Button>
+      </Link>
       {isStoreStaff(role) && (
         <Link href={ROUTES.admin}>
           <Button variant="primary" size="sm">

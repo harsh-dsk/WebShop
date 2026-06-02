@@ -18,6 +18,7 @@ type ProductCardProps = {
     price: { toString(): string } | number;
     compareAtPrice?: { toString(): string } | number | null;
     stock: number;
+    lowStockThreshold?: number;
     isFeatured: boolean;
     images: unknown;
     category: { name: string };
@@ -32,7 +33,12 @@ export function ProductCard({ product }: ProductCardProps) {
   const compareAt = product.compareAtPrice
     ? Number(product.compareAtPrice)
     : null;
-  const outOfStock = getEffectiveStock(product) <= 0;
+  const effectiveStock = getEffectiveStock(product);
+  const outOfStock = effectiveStock <= 0;
+  const isLowStock =
+    product.lowStockThreshold != null &&
+    effectiveStock > 0 &&
+    effectiveStock <= product.lowStockThreshold;
 
   return (
     <Link
@@ -61,6 +67,11 @@ export function ProductCard({ product }: ProductCardProps) {
         {outOfStock && (
           <Badge variant="danger" className="absolute right-3 top-3">
             Out of stock
+          </Badge>
+        )}
+        {!outOfStock && isLowStock && (
+          <Badge variant="warning" className="absolute right-3 top-3">
+            Low stock
           </Badge>
         )}
       </div>

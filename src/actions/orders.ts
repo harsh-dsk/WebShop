@@ -7,8 +7,10 @@ import { redirect } from "next/navigation";
 import { requireStoreStaff, requireUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 import { db } from "@/lib/db";
+import { restoreProductStock } from "@/lib/services/inventory.service";
 import { placeCodOrder } from "@/lib/services/order.service";
 import { parseCheckoutFormData } from "@/lib/validations/checkout";
+import { expectedDeliverySchema } from "@/lib/validations/delivery";
 
 export type ActionState = {
   error?: string;
@@ -61,21 +63,64 @@ export async function updateOrderStatus(
 
   const order = await db.order.findUnique({
     where: { id: orderId },
-    select: { id: true },
+    select: { id: true, status: true },
   });
 
   if (!order) {
     return { error: "Order not found" };
   }
 
-  await db.order.update({
-    where: { id: orderId },
-    data: { status },
+  // If transitioning to CANCELLED from a non-cancelled status, restore inventory.
+  await db.$transaction(async (tx) => {
+    if (status === OrderStatus.CANCELLED && order.status !== OrderStatus.CANCELLED) {
+      const items = await tx.orderItem.findMany({
+        where: { orderId },
+        select: { productId: true, quantity: true },
+      });
+
+      for (const item of items) {
+        await restoreProductStock(tx, item.productId, item.quantity);
+      }
+    }
+
+    await tx.order.update({
+      where: { id: orderId },
+      data: { status },
+    });
   });
 
   revalidatePath(ROUTES.adminOrders);
   revalidatePath(`${ROUTES.adminOrders}/${orderId}`);
   revalidatePath(ROUTES.accountOrders);
+  revalidatePath(`${ROUTES.accountOrders}/${orderId}`);
+
+  return { success: true };
+}
+
+export async function updateExpectedDeliveryDate(
+  orderId: string,
+  expectedDeliveryDate: string,
+): Promise<ActionState> {
+  await requireStoreStaff();
+
+  const parsed = expectedDeliverySchema.safeParse({ expectedDeliveryDate });
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message ?? "Invalid date" };
+  }
+
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: { id: true },
+  });
+
+  if (!order) return { error: "Order not found" };
+
+  await db.order.update({
+    where: { id: orderId },
+    data: { expectedDeliveryDate: new Date(parsed.data.expectedDeliveryDate) },
+  });
+
+  revalidatePath(`${ROUTES.adminOrders}/${orderId}`);
   revalidatePath(`${ROUTES.accountOrders}/${orderId}`);
 
   return { success: true };

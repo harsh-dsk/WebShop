@@ -6,6 +6,7 @@ import { CatalogToolbar } from "@/components/shop/catalog-toolbar";
 import { Pagination } from "@/components/shop/pagination";
 import { ProductGrid } from "@/components/shop/product-grid";
 import { siteConfig } from "@/config/site";
+import { buildOpenGraphMetadata } from "@/lib/seo";
 import type { ProductSort } from "@/lib/services/catalog.service";
 import {
   getActiveCategories,
@@ -29,11 +30,20 @@ export async function generateMetadata({
   const category = await getCategoryBySlug(slug);
   if (!category) return { title: "Category not found" };
 
+  const title = `${category.name} | ${siteConfig.brand.name}`;
+  const description =
+    category.description ??
+    `Browse ${category.name} products at ${siteConfig.brand.name}`;
+
   return {
-    title: category.name,
-    description:
-      category.description ??
-      `${category.name} products at ${siteConfig.brand.name}`,
+    title,
+    description,
+    ...buildOpenGraphMetadata({
+      title,
+      description,
+      urlPath: `/categories/${category.slug}`,
+      imageUrl: category.imageUrl ?? null,
+    }),
   };
 }
 
@@ -75,6 +85,8 @@ export default async function CategoryProductsPage({
       )}
       <p className="mt-2 text-sm text-muted-foreground">
         {result.total} product{result.total !== 1 ? "s" : ""}
+        {" · "}
+        {category._count.products} in category
       </p>
 
       <div className="mt-8">

@@ -70,6 +70,18 @@ export function CatalogToolbar({
             <Button type="submit" disabled={isPending}>
               Search
             </Button>
+            {(q || category || sort !== "newest") && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isPending}
+                onClick={() => {
+                  startTransition(() => router.push(basePath));
+                }}
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </div>
 

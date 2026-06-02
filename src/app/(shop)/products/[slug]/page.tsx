@@ -1,19 +1,25 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AddToCartButton } from "@/components/shop/add-to-cart-button";
+import { ProductGallery } from "@/components/shop/product-gallery";
+import { RecentlyViewed } from "@/components/shop/recently-viewed";
+import { RecentlyViewedProducts } from "@/components/shop/recently-viewed-products";
+import { WishlistButton } from "@/components/shop/wishlist-button";
 import { Badge } from "@/components/ui/badge";
 import { siteConfig } from "@/config/site";
 import { formatPrice } from "@/lib/format";
 import { ROUTES } from "@/lib/constants/routes";
+import { buildOpenGraphMetadata } from "@/lib/seo";
 import {
   getEffectiveStock,
+  getRelatedProducts,
   getProductBySlug,
   parseProductImages,
 } from "@/lib/services/catalog.service";
 import type { AttributeField, ProductMetadata } from "@/types/catalog";
+import { ProductGrid } from "@/components/shop/product-grid";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -24,13 +30,24 @@ export async function generateMetadata({
   const product = await getProductBySlug(slug);
   if (!product) return { title: "Product not found" };
 
+  const images = parseProductImages(product.images);
+  const primaryImage = images[0]?.url ?? null;
+  const title = product.metaTitle ?? `${product.name} | ${siteConfig.brand.name}`;
+  const description =
+    product.metaDescription ??
+    product.shortDescription ??
+    product.description?.slice(0, 160) ??
+    `${product.name} at ${siteConfig.brand.name}`;
+
   return {
-    title: product.metaTitle ?? product.name,
-    description:
-      product.metaDescription ??
-      product.shortDescription ??
-      product.description?.slice(0, 160) ??
-      `${product.name} at ${siteConfig.brand.name}`,
+    title,
+    description,
+    ...buildOpenGraphMetadata({
+      title,
+      description,
+      urlPath: `/products/${product.slug}`,
+      imageUrl: primaryImage,
+    }),
   };
 }
 
@@ -47,8 +64,17 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const compareAt = product.compareAtPrice
     ? Number(product.compareAtPrice)
     : null;
-  const outOfStock = getEffectiveStock(product) <= 0;
+  const effectiveStock = getEffectiveStock(product);
+  const outOfStock = effectiveStock <= 0;
   const tags = product.tags ?? [];
+  const isLowStock =
+    effectiveStock > 0 && effectiveStock <= product.lowStockThreshold;
+
+  const related = await getRelatedProducts({
+    productId: product.id,
+    categoryId: product.categoryId,
+    limit: 8,
+  });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -66,48 +92,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
       </nav>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-2">
-        <div className="space-y-4">
-          <div className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-muted">
-            {images[0] ? (
-              <Image
-                src={images[0].url}
-                alt={images[0].alt ?? product.name}
-                fill
-                className="object-cover"
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-muted-foreground">
-                No image
-              </div>
-            )}
-          </div>
-          {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {images.slice(1, 5).map((img) => (
-                <div
-                  key={img.publicId}
-                  className="relative aspect-square overflow-hidden rounded-xl border border-border"
-                >
-                  <Image
-                    src={img.url}
-                    alt={img.alt ?? ""}
-                    fill
-                    className="object-cover"
-                    sizes="120px"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductGallery images={images} productName={product.name} />
 
         <div>
           <div className="flex flex-wrap gap-2">
             <Badge>{product.category.name}</Badge>
             {product.isFeatured && <Badge variant="accent">Featured</Badge>}
             {outOfStock && <Badge variant="danger">Out of stock</Badge>}
+            {!outOfStock && isLowStock && <Badge variant="warning">Low stock</Badge>}
           </div>
 
           <h1 className="mt-4 text-3xl font-bold tracking-tight text-primary sm:text-4xl">
@@ -147,13 +139,18 @@ export default async function ProductDetailPage({ params }: PageProps) {
             </p>
           )}
 
-          {!outOfStock && (
-            <p className="mt-2 text-sm text-muted-foreground">
-              {getEffectiveStock(product)} in stock
-            </p>
-          )}
+          <p className="mt-2 text-sm text-muted-foreground">
+            {outOfStock
+              ? "Currently unavailable"
+              : isLowStock
+                ? `Hurry — only ${effectiveStock} left`
+                : `${effectiveStock} in stock`}
+          </p>
 
-          <AddToCartButton productId={product.id} disabled={outOfStock} />
+          <div className="mt-6 flex flex-wrap gap-3">
+            <AddToCartButton productId={product.id} disabled={outOfStock} />
+            <WishlistButton productId={product.id} />
+          </div>
 
           {product.variants.length > 0 && (
             <div className="mt-6">
@@ -206,6 +203,29 @@ export default async function ProductDetailPage({ params }: PageProps) {
           )}
         </div>
       </div>
+
+      {related.length > 0 && (
+        <section className="mt-14">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="text-2xl font-bold text-primary">Related products</h2>
+            <Link
+              href={`${ROUTES.categories}/${product.category.slug}`}
+              className="text-sm font-medium text-accent hover:underline"
+            >
+              View category
+            </Link>
+          </div>
+          <div className="mt-6">
+            <ProductGrid products={related} />
+          </div>
+        </section>
+      )}
+
+      <div className="mt-10">
+        <RecentlyViewed currentSlug={product.slug} />
+      </div>
+
+      <RecentlyViewedProducts excludeSlug={product.slug} />
     </div>
   );
 }

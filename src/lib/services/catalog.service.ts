@@ -106,6 +106,8 @@ export async function getProductBySlug(slug: string, includeInactive = false) {
           name: true,
           slug: true,
           attributeSchema: true,
+          imageUrl: true,
+          description: true,
         },
       },
       variants: {
@@ -114,6 +116,42 @@ export async function getProductBySlug(slug: string, includeInactive = false) {
       },
     },
   });
+}
+
+export async function getRelatedProducts(params: {
+  productId: string;
+  categoryId: string;
+  limit?: number;
+}) {
+  const limit = params.limit ?? 8;
+  return db.product.findMany({
+    where: {
+      isActive: true,
+      categoryId: params.categoryId,
+      NOT: { id: params.productId },
+    },
+    take: limit,
+    orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    include: {
+      category: { select: { name: true } },
+      variants: { select: { stock: true, isActive: true } },
+    },
+  });
+}
+
+export async function getProductsBySlugs(slugs: string[]) {
+  if (slugs.length === 0) return [];
+  const products = await db.product.findMany({
+    where: { isActive: true, slug: { in: slugs } },
+    include: {
+      category: { select: { name: true } },
+      variants: { select: { stock: true, isActive: true } },
+    },
+  });
+  const map = new Map(products.map((p) => [p.slug, p]));
+  return slugs
+    .map((s) => map.get(s))
+    .filter((product): product is NonNullable<typeof product> => Boolean(product));
 }
 
 export function getEffectiveStock(product: {
@@ -141,6 +179,9 @@ export async function getActiveCategories() {
 export async function getCategoryBySlug(slug: string) {
   return db.category.findFirst({
     where: { slug, isActive: true },
+    include: {
+      _count: { select: { products: { where: { isActive: true } } } },
+    },
   });
 }
 

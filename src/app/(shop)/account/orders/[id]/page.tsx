@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { OrderStatusBadge } from "@/components/shop/order-status-badge";
+import { OrderTimeline } from "@/components/shop/order-timeline";
 import { requireUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 import { formatPrice } from "@/lib/format";
@@ -99,6 +100,13 @@ export default async function AccountOrderDetailPage({ params }: PageProps) {
             </div>
           </dl>
         </section>
+      </div>
+
+      <div className="mt-6">
+        <OrderTimeline
+          status={order.status}
+          expectedDeliveryDate={order.expectedDeliveryDate}
+        />
       </div>
 
       <section className="mt-8 rounded-2xl border border-border bg-card p-6">

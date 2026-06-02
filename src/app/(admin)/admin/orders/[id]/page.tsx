@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ExpectedDeliveryForm } from "@/components/admin/expected-delivery-form";
 import { OrderStatusForm } from "@/components/admin/order-status-form";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { OrderStatusBadge } from "@/components/shop/order-status-badge";
@@ -30,7 +31,13 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
       />
 
       <div className="rounded-2xl border border-border bg-card p-6">
-        <OrderStatusForm orderId={order.id} currentStatus={order.status} />
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <OrderStatusForm orderId={order.id} currentStatus={order.status} />
+          <ExpectedDeliveryForm
+            orderId={order.id}
+            defaultValue={order.expectedDeliveryDate ?? null}
+          />
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

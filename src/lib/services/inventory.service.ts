@@ -57,3 +57,45 @@ export async function deductProductStock(
     remaining -= take;
   }
 }
+
+export async function restoreProductStock(
+  tx: TransactionClient,
+  productId: string,
+  quantity: number,
+): Promise<void> {
+  const product = await tx.product.findUnique({
+    where: { id: productId },
+    include: {
+      variants: {
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+      },
+    },
+  });
+
+  if (!product) {
+    throw new Error("Product not found");
+  }
+
+  const activeVariants = product.variants;
+
+  if (activeVariants.length === 0) {
+    await tx.product.update({
+      where: { id: productId },
+      data: { stock: { increment: quantity } },
+    });
+    return;
+  }
+
+  // We don't store variant choice on OrderItem, so we restore stock across active
+  // variants deterministically (by sortOrder). This keeps totals accurate.
+  let remaining = quantity;
+  for (const variant of activeVariants) {
+    if (remaining <= 0) break;
+    await tx.productVariant.update({
+      where: { id: variant.id },
+      data: { stock: { increment: remaining } },
+    });
+    remaining = 0;
+  }
+}

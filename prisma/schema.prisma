@@ -189,6 +189,8 @@ model Order {
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
 
+  expectedDeliveryDate DateTime?
+
   shippingName       String
   shippingEmail      String
   shippingPhone      String
