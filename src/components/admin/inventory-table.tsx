@@ -144,7 +144,6 @@ function ProductInventoryRows({ product }: { product: InventoryProduct }) {
   return (
     <ProductRow
       product={product}
-      effective={effective}
       low={low}
       out={out}
       rowClassName={rowClass}
@@ -160,13 +159,11 @@ function StockBadge({ low, out }: { low: boolean; out: boolean }) {
 
 function ProductRow({
   product,
-  effective,
   low,
   out,
   rowClassName,
 }: {
   product: InventoryProduct;
-  effective: number;
   low: boolean;
   out: boolean;
   rowClassName: string;

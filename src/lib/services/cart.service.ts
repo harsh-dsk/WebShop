@@ -4,8 +4,6 @@ import {
   getPrimaryImage,
   parseProductImages,
 } from "@/lib/services/catalog.service";
-import type { ProductImage } from "@/types/catalog";
-
 export async function getOrCreateCart(userId: string) {
   const existing = await db.cart.findUnique({
     where: { userId },
