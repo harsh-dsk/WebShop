@@ -18,7 +18,7 @@ const isProtectedRoute = createRouteMatcher([
   "/wishlist(.*)",
   "/cart(.*)",
   "/checkout(.*)",
-  "/orders(.*)",
+  "/account(.*)",
 ]);
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);

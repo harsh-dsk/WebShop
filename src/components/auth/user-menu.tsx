@@ -58,6 +58,11 @@ export function UserMenu({ role }: UserMenuProps) {
           Profile
         </Button>
       </Link>
+      <Link href={ROUTES.accountOrders}>
+        <Button variant="outline" size="sm" className="hidden sm:inline-flex">
+          Orders
+        </Button>
+      </Link>
       {isStoreStaff(role) && (
         <Link href={ROUTES.admin}>
           <Button variant="primary" size="sm">

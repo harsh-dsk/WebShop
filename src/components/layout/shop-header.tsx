@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { UserMenu } from "@/components/auth/user-menu";
+import { CartNavLink } from "@/components/shop/cart-nav-link";
 import { siteConfig } from "@/config/site";
 import { getCurrentUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
@@ -44,7 +45,10 @@ export async function ShopHeader() {
           ))}
         </nav>
 
-        <UserMenu role={user?.role ?? null} />
+        <div className="flex items-center gap-1 sm:gap-2">
+          <CartNavLink userId={user?.id ?? null} />
+          <UserMenu role={user?.role ?? null} />
+        </div>
       </div>
     </header>
   );

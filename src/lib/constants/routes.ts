@@ -8,11 +8,14 @@ export const ROUTES = {
   wishlist: "/wishlist",
   cart: "/cart",
   checkout: "/checkout",
-  orders: "/orders",
+  checkoutSuccess: "/checkout/success",
+  accountOrders: "/account/orders",
+  orders: "/account/orders",
   admin: "/admin",
   adminProducts: "/admin/products",
   adminCategories: "/admin/categories",
   adminInventory: "/admin/inventory",
+  adminOrders: "/admin/orders",
 } as const;
 
 export const PROTECTED_ROUTES = [
@@ -20,7 +23,9 @@ export const PROTECTED_ROUTES = [
   ROUTES.wishlist,
   ROUTES.cart,
   ROUTES.checkout,
-  ROUTES.orders,
+  ROUTES.checkoutSuccess,
+  ROUTES.accountOrders,
+  "/account(.*)",
 ] as const;
 
 export const ADMIN_ROUTES = [ROUTES.admin] as const;

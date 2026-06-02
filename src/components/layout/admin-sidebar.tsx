@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolderTree, LayoutDashboard, Package, Warehouse } from "lucide-react";
+import { FolderTree, LayoutDashboard, Package, ShoppingBag, Warehouse } from "lucide-react";
 
 import { siteConfig } from "@/config/site";
 import { ROUTES } from "@/lib/constants/routes";
@@ -13,6 +13,7 @@ const links = [
   { href: ROUTES.adminProducts, label: "Products", icon: Package },
   { href: ROUTES.adminCategories, label: "Categories", icon: FolderTree },
   { href: ROUTES.adminInventory, label: "Inventory", icon: Warehouse },
+  { href: ROUTES.adminOrders, label: "Orders", icon: ShoppingBag },
 ];
 
 export function AdminSidebar() {

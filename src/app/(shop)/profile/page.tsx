@@ -1,8 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
+import Link from "next/link";
 import type { Metadata } from "next";
 
+import { Button } from "@/components/ui/button";
 import { getSessionSummary, requireUser } from "@/lib/auth";
+import { ROUTES } from "@/lib/constants/routes";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -80,6 +83,15 @@ export default async function ProfilePage() {
             Clerk public metadata is synced for middleware role checks.
           </p>
         ) : null}
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link href={ROUTES.accountOrders}>
+            <Button variant="outline">My orders</Button>
+          </Link>
+          <Link href={ROUTES.cart}>
+            <Button variant="outline">View cart</Button>
+          </Link>
+        </div>
       </div>
     </section>
   );

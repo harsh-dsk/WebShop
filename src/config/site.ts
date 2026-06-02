@@ -113,6 +113,8 @@ export const siteConfig: SiteConfig = {
         links: [
           { label: "Sign in", href: "/sign-in" },
           { label: "Profile", href: "/profile" },
+          { label: "My orders", href: "/account/orders" },
+          { label: "Cart", href: "/cart" },
         ],
       },
     ],

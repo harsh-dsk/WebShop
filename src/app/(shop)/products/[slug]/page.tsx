@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AddToCartButton } from "@/components/shop/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import { siteConfig } from "@/config/site";
 import { formatPrice } from "@/lib/format";
@@ -151,6 +152,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
               {getEffectiveStock(product)} in stock
             </p>
           )}
+
+          <AddToCartButton productId={product.id} disabled={outOfStock} />
 
           {product.variants.length > 0 && (
             <div className="mt-6">
