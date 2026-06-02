@@ -20,12 +20,13 @@ export default async function AdminOrdersPage() {
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/40">
-              <th className="px-4 py-3 font-medium">Order</th>
+              <th className="px-4 py-3 font-medium">Order number</th>
               <th className="px-4 py-3 font-medium">Customer</th>
               <th className="px-4 py-3 font-medium">Phone</th>
+              <th className="px-4 py-3 font-medium">Items</th>
               <th className="px-4 py-3 font-medium">Total</th>
               <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Created</th>
+              <th className="px-4 py-3 font-medium">Date</th>
             </tr>
           </thead>
           <tbody>
@@ -54,6 +55,9 @@ export default async function AdminOrdersPage() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {order.shippingPhone}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {order._count.items}
                   </td>
                   <td className="px-4 py-3 font-medium">
                     {formatPrice(Number(order.total))}

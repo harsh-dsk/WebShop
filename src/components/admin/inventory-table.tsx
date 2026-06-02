@@ -107,6 +107,12 @@ function ProductInventoryRows({ product }: { product: InventoryProduct }) {
   const low =
     effective > 0 && effective <= product.lowStockThreshold;
   const out = effective === 0;
+  const rowClass =
+    out
+      ? "bg-red-50/60"
+      : low
+        ? "bg-amber-50/60"
+        : "";
 
   if (product.variants.length > 0) {
     return (
@@ -141,13 +147,14 @@ function ProductInventoryRows({ product }: { product: InventoryProduct }) {
       effective={effective}
       low={low}
       out={out}
+      rowClassName={rowClass}
     />
   );
 }
 
 function StockBadge({ low, out }: { low: boolean; out: boolean }) {
   if (out) return <Badge variant="danger">Out of stock</Badge>;
-  if (low) return <Badge variant="danger">Low stock</Badge>;
+  if (low) return <Badge variant="warning">Low stock</Badge>;
   return <Badge variant="muted">In stock</Badge>;
 }
 
@@ -156,17 +163,19 @@ function ProductRow({
   effective,
   low,
   out,
+  rowClassName,
 }: {
   product: InventoryProduct;
   effective: number;
   low: boolean;
   out: boolean;
+  rowClassName: string;
 }) {
   const [stock, setStock] = useState(String(product.stock));
   const [pending, startTransition] = useTransition();
 
   return (
-    <tr className="border-b border-border last:border-0">
+    <tr className={cn("border-b border-border last:border-0", rowClassName)}>
       <td className="px-4 py-3">
         <p className="font-medium">{product.name}</p>
         <p className="text-xs text-muted-foreground">{product.category.name}</p>
@@ -191,6 +200,13 @@ function ProductRow({
             });
           }}
         />
+        {(low || out) && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            {out
+              ? "Out of stock — consider restocking"
+              : `Low stock — threshold ${product.lowStockThreshold}`}
+          </p>
+        )}
       </td>
     </tr>
   );

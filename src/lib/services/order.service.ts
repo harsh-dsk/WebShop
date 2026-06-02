@@ -1,26 +1,28 @@
-import { OrderStatus, PaymentStatus } from "@prisma/client";
+import { OrderStatus, PaymentStatus, Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { deductProductStock } from "@/lib/services/inventory.service";
 import { getCartWithItems } from "@/lib/services/cart.service";
 import type { CheckoutInput } from "@/lib/validations/checkout";
 
-export async function generateOrderNumber(): Promise<string> {
-  const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+function parseNumericOrderNumber(orderNumber: string): number | null {
+  const match = /^ORD-(\d+)$/.exec(orderNumber);
+  if (!match) return null;
+  const n = Number(match[1]);
+  return Number.isFinite(n) ? n : null;
+}
 
-  for (let attempt = 0; attempt < 10; attempt++) {
-    const random = Math.random().toString(36).slice(2, 8).toUpperCase();
-    const orderNumber = `ORD-${datePart}-${random}`;
+async function getNextOrderNumber(
+  tx: Prisma.TransactionClient,
+): Promise<string> {
+  const latest = await tx.order.findFirst({
+    orderBy: { createdAt: "desc" },
+    select: { orderNumber: true },
+  });
 
-    const existing = await db.order.findUnique({
-      where: { orderNumber },
-      select: { id: true },
-    });
-
-    if (!existing) return orderNumber;
-  }
-
-  throw new Error("Could not generate a unique order number");
+  const last = latest ? parseNumericOrderNumber(latest.orderNumber) : null;
+  const next = (last ?? 1000) + 1;
+  return `ORD-${next}`;
 }
 
 export async function placeCodOrder(userId: string, shipping: CheckoutInput) {
@@ -43,52 +45,68 @@ export async function placeCodOrder(userId: string, shipping: CheckoutInput) {
   const shippingCost = 0;
   const tax = 0;
   const total = subtotal + shippingCost + tax;
-  const orderNumber = await generateOrderNumber();
-
   const order = await db.$transaction(async (tx) => {
-    const created = await tx.order.create({
-      data: {
-        orderNumber,
-        userId,
-        status: OrderStatus.PENDING,
-        paymentStatus: PaymentStatus.PENDING,
-        shippingName: shipping.shippingName,
-        shippingEmail: shipping.shippingEmail,
-        shippingPhone: shipping.shippingPhone,
-        shippingAddress: shipping.shippingAddress,
-        shippingCity: shipping.shippingCity,
-        shippingState: shipping.shippingState,
-        shippingPostalCode: shipping.shippingPostalCode,
-        shippingCountry: "IN",
-        subtotal,
-        shippingCost,
-        tax,
-        total,
-        notes: "Cash on Delivery",
-        items: {
-          create: items.map((item) => ({
-            productId: item.productId,
-            productName: item.name,
-            productSlug: item.slug,
-            productImage: item.image?.url ?? null,
-            unitPrice: item.price,
-            quantity: item.quantity,
-            lineTotal: item.subtotal,
-          })),
-        },
-      },
-      include: { items: true },
-    });
+    // Generate sequential numbers like ORD-1001 with safe retry on collisions.
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const orderNumber = await getNextOrderNumber(tx);
 
-    for (const item of items) {
-      await deductProductStock(tx, item.productId, item.quantity);
+      try {
+        const created = await tx.order.create({
+          data: {
+            orderNumber,
+            userId,
+            status: OrderStatus.PENDING,
+            paymentStatus: PaymentStatus.PENDING,
+            shippingName: shipping.shippingName,
+            shippingEmail: shipping.shippingEmail,
+            shippingPhone: shipping.shippingPhone,
+            shippingAddress: shipping.shippingAddress,
+            shippingCity: shipping.shippingCity,
+            shippingState: shipping.shippingState,
+            shippingPostalCode: shipping.shippingPostalCode,
+            shippingCountry: "IN",
+            subtotal,
+            shippingCost,
+            tax,
+            total,
+            notes: "Cash on Delivery",
+            items: {
+              create: items.map((item) => ({
+                productId: item.productId,
+                productName: item.name,
+                productSlug: item.slug,
+                productImage: item.image?.url ?? null,
+                unitPrice: item.price,
+                quantity: item.quantity,
+                lineTotal: item.subtotal,
+              })),
+            },
+          },
+          include: { items: true },
+        });
+
+        for (const item of items) {
+          await deductProductStock(tx, item.productId, item.quantity);
+        }
+
+        await tx.cartItem.deleteMany({
+          where: { cartId: cart.id },
+        });
+
+        return created;
+      } catch (err) {
+        // Unique collision on orderNumber: retry.
+        if (
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === "P2002"
+        ) {
+          continue;
+        }
+        throw err;
+      }
     }
 
-    await tx.cartItem.deleteMany({
-      where: { cartId: cart.id },
-    });
-
-    return created;
+    throw new Error("Could not generate a unique order number");
   });
 
   return order;

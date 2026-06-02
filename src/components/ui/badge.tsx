@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import type { HTMLAttributes } from "react";
 
 type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
-  variant?: "default" | "accent" | "muted" | "danger";
+  variant?: "default" | "accent" | "muted" | "warning" | "success" | "danger";
 };
 
 export function Badge({
@@ -17,6 +17,8 @@ export function Badge({
         variant === "default" && "bg-primary/10 text-primary",
         variant === "accent" && "bg-accent/15 text-accent",
         variant === "muted" && "bg-muted text-muted-foreground",
+        variant === "warning" && "bg-amber-100 text-amber-900",
+        variant === "success" && "bg-emerald-100 text-emerald-900",
         variant === "danger" && "bg-red-100 text-red-800",
         className,
       )}

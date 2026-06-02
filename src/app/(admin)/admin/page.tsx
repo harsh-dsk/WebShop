@@ -1,9 +1,11 @@
 import Link from "next/link";
 import {
   AlertTriangle,
+  Banknote,
   FolderTree,
   Package,
   PackageX,
+  Receipt,
   Warehouse,
 } from "lucide-react";
 
@@ -33,6 +35,36 @@ export default async function AdminDashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
+          label="Total orders"
+          value={stats.totalOrders}
+          href={ROUTES.adminOrders}
+          linkLabel="View orders"
+          icon={Receipt}
+        />
+        <StatsCard
+          label="Total revenue"
+          value={Intl.NumberFormat(siteConfig.currency.locale, {
+            style: "currency",
+            currency: siteConfig.currency.code,
+            maximumFractionDigits: 2,
+          }).format(stats.totalRevenue)}
+          href={ROUTES.adminOrders}
+          icon={Banknote}
+        />
+        <StatsCard
+          label="Pending orders"
+          value={stats.pendingOrders}
+          href={ROUTES.adminOrders}
+          icon={AlertTriangle}
+          variant="warning"
+        />
+        <StatsCard
+          label="Delivered orders"
+          value={stats.deliveredOrders}
+          href={ROUTES.adminOrders}
+          icon={Receipt}
+        />
+        <StatsCard
           label="Total products"
           value={stats.productCount}
           href={ROUTES.adminProducts}
@@ -61,7 +93,7 @@ export default async function AdminDashboardPage() {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatsCard
           label="Low stock"
           value={stats.lowStockCount}
@@ -76,6 +108,12 @@ export default async function AdminDashboardPage() {
           href={ROUTES.adminInventory}
           icon={PackageX}
           variant="danger"
+        />
+        <StatsCard
+          label="Active categories"
+          value={stats.activeCategoryCount}
+          href={ROUTES.adminCategories}
+          icon={FolderTree}
         />
       </div>
 

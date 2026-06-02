@@ -4,13 +4,13 @@ import { Badge } from "@/components/ui/badge";
 
 const statusVariant: Record<
   OrderStatus,
-  "default" | "accent" | "muted" | "danger"
+  "default" | "accent" | "muted" | "warning" | "success" | "danger"
 > = {
-  PENDING: "muted",
+  PENDING: "warning",
   CONFIRMED: "default",
   PROCESSING: "accent",
   SHIPPED: "accent",
-  DELIVERED: "default",
+  DELIVERED: "success",
   CANCELLED: "danger",
 };
 

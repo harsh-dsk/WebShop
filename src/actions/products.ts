@@ -124,8 +124,13 @@ export async function createProduct(
 ): Promise<ActionState> {
   await requireStoreStaff();
 
+  const rawCategoryId = formData.get("categoryId");
+  if (typeof rawCategoryId !== "string" || rawCategoryId.trim() === "") {
+    return { error: "Category is required" };
+  }
+
   const category = await db.category.findUnique({
-    where: { id: String(formData.get("categoryId")) },
+    where: { id: rawCategoryId },
   });
   if (!category) return { error: "Category not found" };
 
@@ -138,11 +143,6 @@ export async function createProduct(
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Invalid attributes" };
   }
-
-  console.log(
-  "CREATE FORM DATA:",
-  Object.fromEntries(formData.entries())
-);
 
   const parsed = productSchema.safeParse({
     ...parseProductFormData(formData),
@@ -205,8 +205,13 @@ export async function updateProduct(
   const existing = await db.product.findUnique({ where: { id } });
   if (!existing) return { error: "Product not found" };
 
+  const rawCategoryId = formData.get("categoryId");
+  if (typeof rawCategoryId !== "string" || rawCategoryId.trim() === "") {
+    return { error: "Category is required" };
+  }
+
   const category = await db.category.findUnique({
-    where: { id: String(formData.get("categoryId")) },
+    where: { id: rawCategoryId },
   });
   if (!category) return { error: "Category not found" };
 
@@ -219,12 +224,6 @@ export async function updateProduct(
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Invalid attributes" };
   }
-
-  console.log(
-  "UPDATE FORM DATA:",
-  Object.fromEntries(formData.entries())
-);
-
 
   const parsed = productSchema.safeParse({
     ...parseProductFormData(formData),

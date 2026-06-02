@@ -183,6 +183,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
               <Label htmlFor="stock">Stock {variants.length > 0 && "(auto from variants)"}</Label>
              <Input
   id="stock"
+  name="stock"
   type="number"
   min="0"
   defaultValue={product?.stock ?? 0}
@@ -190,11 +191,13 @@ export function ProductForm({ categories, product }: ProductFormProps) {
   className="mt-1.5"
 />
 
-<input
-  type="hidden"
-  name="stock"
-  value={String(product?.stock ?? 0)}
-/>
+{variants.length > 0 && (
+  <input
+    type="hidden"
+    name="stock"
+    value={String(product?.stock ?? 0)}
+  />
+)}
             </div>
             <div>
               <Label htmlFor="lowStockThreshold">Low stock alert</Label>
