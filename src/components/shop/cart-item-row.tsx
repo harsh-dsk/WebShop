@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
 
 import { removeFromCart, updateCartItemQuantity } from "@/actions/cart";
@@ -28,27 +28,35 @@ type CartItemRowProps = {
 export function CartItemRow({ item }: CartItemRowProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   function refresh() {
     router.refresh();
   }
 
   function handleQuantityChange(next: number) {
+    setStatus(null);
     startTransition(async () => {
       const result = await updateCartItemQuantity(item.id, next);
       if (result.error) {
-        alert(result.error);
+        setStatus({ type: "error", message: result.error });
+        return;
       }
+
+      setStatus({ type: "success", message: "Quantity updated" });
       refresh();
     });
   }
 
   function handleRemove() {
+    setStatus(null);
     startTransition(async () => {
       const result = await removeFromCart(item.id);
       if (result.error) {
-        alert(result.error);
+        setStatus({ type: "error", message: result.error });
+        return;
       }
+
       refresh();
     });
   }
@@ -126,6 +134,14 @@ export function CartItemRow({ item }: CartItemRowProps) {
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
+          {status ? (
+            <p
+              className={`mt-3 text-sm ${status.type === "success" ? "text-primary" : "text-red-600"}`}
+              role="status"
+            >
+              {status.message}
+            </p>
+          ) : null}
         </div>
       </div>
     </li>

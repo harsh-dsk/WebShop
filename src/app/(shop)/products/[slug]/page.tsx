@@ -18,6 +18,9 @@ import {
   getProductBySlug,
   parseProductImages,
 } from "@/lib/services/catalog.service";
+import { getCurrentUser } from "@/lib/auth";
+import { getCartItemByProduct } from "@/lib/services/cart.service";
+import { isInWishlist } from "@/lib/services/wishlist.service";
 import type { AttributeField, ProductMetadata } from "@/types/catalog";
 import { ProductGrid } from "@/components/shop/product-grid";
 
@@ -69,6 +72,15 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const tags = product.tags ?? [];
   const isLowStock =
     effectiveStock > 0 && effectiveStock <= product.lowStockThreshold;
+
+  const user = await getCurrentUser();
+  const cartItem = user
+    ? await getCartItemByProduct(user.id, product.id)
+    : null;
+  const cartQuantity = cartItem?.quantity ?? 0;
+  const isWishlisted = user
+    ? await isInWishlist(user.id, product.id)
+    : false;
 
   const related = await getRelatedProducts({
     productId: product.id,
@@ -147,9 +159,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 : `${effectiveStock} in stock`}
           </p>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            <AddToCartButton productId={product.id} disabled={outOfStock} />
-            <WishlistButton productId={product.id} />
+          <div className="mt-4 flex flex-wrap items-start gap-3">
+            <AddToCartButton
+              productId={product.id}
+              disabled={outOfStock}
+              initialQuantity={cartQuantity}
+              availableStock={effectiveStock}
+            />
+            <WishlistButton productId={product.id} initialActive={isWishlisted} />
           </div>
 
           {product.variants.length > 0 && (

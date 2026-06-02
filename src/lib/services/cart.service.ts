@@ -73,4 +73,19 @@ export async function getCartItemCount(userId: string): Promise<number> {
   return cart.items.reduce((sum, item) => sum + item.quantity, 0);
 }
 
+export async function getCartItemByProduct(userId: string, productId: string) {
+  const item = await db.cartItem.findFirst({
+    where: {
+      productId,
+      cart: { userId },
+    },
+    select: {
+      id: true,
+      quantity: true,
+    },
+  });
+
+  return item ?? null;
+}
+
 export type CartLineItem = Awaited<ReturnType<typeof getCartWithItems>>["items"][number];
