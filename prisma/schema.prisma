@@ -8,74 +8,67 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  clerkId   String    @unique
-  email     String    @unique
-  firstName String?
-  lastName  String?
-  fullName  String?
-  phone     String?
-  address   String?
-  city      String?
-  state     String?
+  id         String    @id @default(cuid())
+  clerkId    String    @unique
+  email      String    @unique
+  firstName  String?
+  lastName   String?
+  phone      String?
+  imageUrl   String?
+  role       Role      @default(CUSTOMER)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  fullName   String?
+  address    String?
+  city       String?
+  state      String?
   postalCode String?
-  imageUrl  String?
-  role      Role      @default(CUSTOMER)
-  isBlocked Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  cart      Cart?
-  orders    Order[]
-  wishlist  Wishlist?
+  isBlocked  Boolean   @default(false)
+  cart       Cart?
+  orders     Order[]
+  wishlist   Wishlist?
 
   @@index([role])
   @@index([isBlocked])
+  @@index([isBlocked], map: "users_isblocked_idx")
   @@map("users")
 }
 
 model SiteSettings {
-  id String @id @default("default")
-
-  storeName        String
-  storeTagline     String
-  storeDescription String @db.Text
-
-  logoUrl    String?
-  logoText   String  @default("SF")
-  faviconUrl String?
-
-  supportEmail String
-  supportPhone String
-  storeAddress String @db.Text
-
-  instagramUrl String?
-  facebookUrl  String?
-  linkedInUrl  String?
-  twitterUrl   String?
-
-  primaryColor     String
-  secondaryColor   String
-  accentColor      String
-  backgroundColor  String
-  textColor        String
-  buttonColor      String
-
+  id                    String   @id
+  storeName             String
+  storeTagline          String
+  storeDescription      String
+  logoUrl               String?
+  logoText              String   @default("SF")
+  faviconUrl            String?
+  supportEmail          String
+  supportPhone          String
+  storeAddress          String
+  instagramUrl          String?
+  facebookUrl           String?
+  linkedInUrl           String?
+  twitterUrl            String?
+  primaryColor          String
+  secondaryColor        String
+  accentColor           String
+  backgroundColor       String
+  textColor             String
+  buttonColor           String
   heroEyebrow           String?
   heroTitle             String
-  heroSubtitle          String  @db.Text
+  heroSubtitle          String
   heroPrimaryCtaLabel   String
   heroPrimaryCtaHref    String
   heroSecondaryCtaLabel String?
   heroSecondaryCtaHref  String?
   heroBackgroundImage   String?
-
-  showFeaturedProducts Boolean @default(true)
-  showCategories       Boolean @default(true)
-  showBestSellers      Boolean @default(true)
-  showNewsletter       Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  showFeaturedProducts  Boolean  @default(true)
+  showCategories        Boolean  @default(true)
+  showBestSellers       Boolean  @default(true)
+  showNewsletter        Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   @@map("site_settings")
 }
@@ -229,8 +222,8 @@ model Order {
   updatedAt            DateTime      @updatedAt
   expectedDeliveryDate DateTime?
   items                OrderItem[]
-  sentEmails           SentEmail[]
   user                 User          @relation(fields: [userId], references: [id])
+  sentEmails           SentEmail[]
 
   @@index([userId])
   @@index([status])
@@ -251,16 +244,6 @@ model SentEmail {
   @@map("sent_emails")
 }
 
-enum EmailNotificationType {
-  ORDER_CONFIRMATION
-  ADMIN_NEW_ORDER
-  STATUS_CONFIRMED
-  STATUS_PROCESSING
-  STATUS_SHIPPED
-  STATUS_DELIVERED
-  STATUS_CANCELLED
-}
-
 model OrderItem {
   id           String  @id @default(cuid())
   orderId      String
@@ -277,6 +260,16 @@ model OrderItem {
   @@index([orderId])
   @@index([productId])
   @@map("order_items")
+}
+
+enum EmailNotificationType {
+  ORDER_CONFIRMATION
+  ADMIN_NEW_ORDER
+  STATUS_CONFIRMED
+  STATUS_PROCESSING
+  STATUS_SHIPPED
+  STATUS_DELIVERED
+  STATUS_CANCELLED
 }
 
 enum Role {

@@ -25,8 +25,6 @@ const isProtectedRoute = createRouteMatcher([
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 const isSuperAdminRoute = createRouteMatcher(["/super-admin(.*)"]);
 
-const STAFF_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
-
 export default clerkMiddleware(async (auth, request) => {
   const { userId, sessionClaims, redirectToSignIn } = await auth();
 
@@ -55,19 +53,12 @@ export default clerkMiddleware(async (auth, request) => {
     }
   }
 
-  const role = metadata?.role;
-
-  if (isSuperAdminRoute(request)) {
-    if (role !== "SUPER_ADMIN") {
-      const homeUrl = new URL(ROUTES.home, request.url);
-      return NextResponse.redirect(homeUrl);
-    }
-  }
-
-  if (isAdminRoute(request)) {
-    if (role && !STAFF_ROLES.has(role)) {
-      const homeUrl = new URL(ROUTES.home, request.url);
-      return NextResponse.redirect(homeUrl);
+  if (isSuperAdminRoute(request) || isAdminRoute(request)) {
+    // Route-level authorization is enforced in server components via
+    // requireStoreStaff() / requireSuperAdmin(), so middleware only requires
+    // sign-in here to avoid stale Clerk metadata blocking valid users.
+    if (!userId) {
+      return redirectToSignIn({ returnBackUrl: request.url });
     }
   }
 
