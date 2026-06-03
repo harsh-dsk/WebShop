@@ -2,37 +2,39 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolderTree, LayoutDashboard, Package, ShoppingBag, Warehouse } from "lucide-react";
+import {
+  BarChart3,
+  LayoutDashboard,
+  Palette,
+  Settings,
+  Sparkles,
+  Users,
+} from "lucide-react";
 
-import { siteConfig } from "@/config/site";
 import { ROUTES } from "@/lib/constants/routes";
-import type { Role } from "@prisma/client";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: ROUTES.admin, label: "Overview", icon: LayoutDashboard },
-  { href: ROUTES.adminProducts, label: "Products", icon: Package },
-  { href: ROUTES.adminCategories, label: "Categories", icon: FolderTree },
-  { href: ROUTES.adminInventory, label: "Inventory", icon: Warehouse },
-  { href: ROUTES.adminOrders, label: "Orders", icon: ShoppingBag },
+  { href: ROUTES.superAdmin, label: "Overview", icon: LayoutDashboard },
+  { href: ROUTES.superAdminUsers, label: "Users", icon: Users },
+  { href: ROUTES.superAdminSettings, label: "Settings", icon: Settings },
+  { href: ROUTES.superAdminBranding, label: "Branding", icon: Sparkles },
+  { href: ROUTES.superAdminTheme, label: "Theme", icon: Palette },
+  { href: ROUTES.superAdminAnalytics, label: "Analytics", icon: BarChart3 },
 ];
 
-type AdminSidebarProps = {
-  role?: Role | null;
-};
-
-export function AdminSidebar({ role }: AdminSidebarProps) {
+export function SuperAdminSidebar() {
   const pathname = usePathname();
 
   return (
     <aside className="w-full shrink-0 lg:w-56">
       <p className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        Store management
+        Platform control
       </p>
       <nav className="flex flex-row gap-2 overflow-x-auto lg:flex-col lg:gap-1">
         {links.map(({ href, label, icon: Icon }) => {
           const active =
-            href === ROUTES.admin
+            href === ROUTES.superAdmin
               ? pathname === href
               : pathname.startsWith(href);
 
@@ -53,17 +55,6 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
           );
         })}
       </nav>
-      {role === "SUPER_ADMIN" && (
-        <Link
-          href={ROUTES.superAdmin}
-          className="mt-4 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-accent hover:bg-muted"
-        >
-          Super Admin CMS →
-        </Link>
-      )}
-      <p className="mt-8 hidden text-xs text-muted-foreground lg:block">
-        {siteConfig.brand.name} — admin panel
-      </p>
     </aside>
   );
 }

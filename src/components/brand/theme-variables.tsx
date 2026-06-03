@@ -1,26 +1,38 @@
-import { siteConfig } from "@/config/site";
+import { hexToHslChannels } from "@/lib/color-utils";
+import type { RuntimeSiteConfig } from "@/lib/site-runtime";
 
-/** Injects customizable theme colors from site config into CSS variables */
-export function ThemeVariables() {
-  const { theme } = siteConfig;
+type ThemeVariablesProps = {
+  config: RuntimeSiteConfig;
+};
+
+/** Injects customizable theme colors from database settings into CSS variables */
+export function ThemeVariables({ config }: ThemeVariablesProps) {
+  const { themeColors } = config;
+
+  const primary = hexToHslChannels(themeColors.button);
+  const accent = hexToHslChannels(themeColors.accent);
+  const background = hexToHslChannels(themeColors.background);
+  const foreground = hexToHslChannels(themeColors.text);
+  const card = hexToHslChannels(themeColors.secondary);
+  const brandPrimary = hexToHslChannels(themeColors.primary);
 
   const css = `
     :root {
-      --background: 40 33% 97%;
-      --foreground: 155 30% 12%;
-      --card: 35 24% 92%;
-      --card-foreground: 155 30% 12%;
-      --primary: 158 43% 19%;
-      --primary-foreground: 40 33% 97%;
-      --accent: 22 95% 46%;
-      --accent-foreground: 40 33% 97%;
-      --muted: 35 18% 88%;
-      --muted-foreground: 155 12% 40%;
-      --border: 35 20% 85%;
-      --brand-primary: ${theme.primary};
-      --brand-accent: ${theme.accent};
-      --brand-background: ${theme.background};
-      --brand-card: ${theme.card};
+      --background: ${background};
+      --foreground: ${foreground};
+      --card: ${card};
+      --card-foreground: ${foreground};
+      --primary: ${primary};
+      --primary-foreground: ${background};
+      --accent: ${accent};
+      --accent-foreground: ${background};
+      --muted: ${card};
+      --muted-foreground: ${foreground};
+      --border: ${card};
+      --brand-primary: ${brandPrimary};
+      --brand-accent: ${accent};
+      --brand-background: ${background};
+      --brand-card: ${card};
     }
   `;
 

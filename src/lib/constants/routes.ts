@@ -16,6 +16,13 @@ export const ROUTES = {
   adminCategories: "/admin/categories",
   adminInventory: "/admin/inventory",
   adminOrders: "/admin/orders",
+  superAdmin: "/super-admin",
+  superAdminUsers: "/super-admin/users",
+  superAdminSettings: "/super-admin/settings",
+  superAdminTheme: "/super-admin/theme",
+  superAdminBranding: "/super-admin/branding",
+  superAdminAnalytics: "/super-admin/analytics",
+  accountBlocked: "/account/blocked",
 } as const;
 
 export const PROTECTED_ROUTES = [

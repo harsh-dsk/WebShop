@@ -202,3 +202,32 @@ export function parseProductImages(images: unknown): ProductImage[] {
       typeof (img as ProductImage).url === "string",
   );
 }
+
+export async function getBestSellingProducts(pageSize = 8) {
+  const grouped = await db.orderItem.groupBy({
+    by: ["productId"],
+    _sum: { quantity: true },
+    orderBy: { _sum: { quantity: "desc" } },
+    take: pageSize,
+  });
+
+  if (grouped.length === 0) {
+    return queryProducts({ pageSize, sort: "newest" });
+  }
+
+  const productIds = grouped.map((g) => g.productId);
+  const products = await db.product.findMany({
+    where: { id: { in: productIds }, isActive: true },
+    include: {
+      category: { select: { id: true, name: true, slug: true } },
+      variants: { select: { stock: true, isActive: true } },
+    },
+  });
+
+  const byId = new Map(products.map((p) => [p.id, p]));
+  const items = productIds
+    .map((id) => byId.get(id))
+    .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+  return { items, total: items.length, page: 1, pageSize, totalPages: 1 };
+}

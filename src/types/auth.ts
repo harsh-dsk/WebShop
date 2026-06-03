@@ -5,4 +5,5 @@ export type SessionUser = User;
 export type UserPublicMetadata = {
   role?: Role;
   dbUserId?: string;
+  isBlocked?: boolean;
 };

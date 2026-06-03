@@ -3,13 +3,16 @@ import Link from "next/link";
 
 import { UserMenu } from "@/components/auth/user-menu";
 import { CartNavLink } from "@/components/shop/cart-nav-link";
-import { siteConfig } from "@/config/site";
 import { getCurrentUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
+import { getRuntimeSiteConfig } from "@/lib/services/site-settings.service";
 
 export async function ShopHeader() {
-  const user = await getCurrentUser();
-  const { brand, logo, navigation } = siteConfig;
+  const [user, config] = await Promise.all([
+    getCurrentUser(),
+    getRuntimeSiteConfig(),
+  ]);
+  const { brand, logo, navigation } = config;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">

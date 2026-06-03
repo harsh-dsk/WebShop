@@ -75,6 +75,13 @@ export function UserMenu({ role }: UserMenuProps) {
           </Button>
         </Link>
       )}
+      {role === "SUPER_ADMIN" && (
+        <Link href={ROUTES.superAdmin}>
+          <Button variant="outline" size="sm" className="hidden sm:inline-flex">
+            Super Admin
+          </Button>
+        </Link>
+      )}
       <SignOutButton>
         <Button variant="ghost" size="sm">
           Sign out

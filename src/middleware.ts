@@ -11,6 +11,7 @@ const isPublicRoute = createRouteMatcher([
   "/products(.*)",
   "/categories(.*)",
   "/api/webhooks(.*)",
+  "/account/blocked",
 ]);
 
 const isProtectedRoute = createRouteMatcher([
@@ -22,6 +23,7 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
+const isSuperAdminRoute = createRouteMatcher(["/super-admin(.*)"]);
 
 const STAFF_ROLES = new Set(["ADMIN", "SUPER_ADMIN"]);
 
@@ -32,18 +34,37 @@ export default clerkMiddleware(async (auth, request) => {
     return NextResponse.next();
   }
 
-  if (isProtectedRoute(request) || isAdminRoute(request)) {
+  const metadata = sessionClaims?.publicMetadata as
+    | UserPublicMetadata
+    | undefined;
+
+  if (userId && metadata?.isBlocked) {
+    const blockedUrl = new URL(ROUTES.accountBlocked, request.url);
+    if (!request.nextUrl.pathname.startsWith(ROUTES.accountBlocked)) {
+      return NextResponse.redirect(blockedUrl);
+    }
+  }
+
+  if (
+    isProtectedRoute(request) ||
+    isAdminRoute(request) ||
+    isSuperAdminRoute(request)
+  ) {
     if (!userId) {
       return redirectToSignIn({ returnBackUrl: request.url });
     }
   }
 
-  if (isAdminRoute(request)) {
-    const metadata = sessionClaims?.publicMetadata as
-      | UserPublicMetadata
-      | undefined;
-    const role = metadata?.role;
+  const role = metadata?.role;
 
+  if (isSuperAdminRoute(request)) {
+    if (role !== "SUPER_ADMIN") {
+      const homeUrl = new URL(ROUTES.home, request.url);
+      return NextResponse.redirect(homeUrl);
+    }
+  }
+
+  if (isAdminRoute(request)) {
     if (role && !STAFF_ROLES.has(role)) {
       const homeUrl = new URL(ROUTES.home, request.url);
       return NextResponse.redirect(homeUrl);

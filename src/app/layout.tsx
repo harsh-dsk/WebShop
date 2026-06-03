@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeVariables } from "@/components/brand/theme-variables";
 import { siteConfig } from "@/config/site";
 import { clerkAppearance } from "@/lib/clerk-appearance";
+import { getRuntimeSiteConfig } from "@/lib/services/site-settings.service";
 
 import "./globals.css";
 
@@ -26,16 +27,21 @@ export const metadata: Metadata = {
   description: siteConfig.brand.description,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const runtimeConfig = await getRuntimeSiteConfig();
+
   return (
     <ClerkProvider appearance={clerkAppearance}>
       <html lang="en">
         <head>
-          <ThemeVariables />
+          <ThemeVariables config={runtimeConfig} />
+          {runtimeConfig.faviconUrl ? (
+            <link rel="icon" href={runtimeConfig.faviconUrl} />
+          ) : null}
         </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} min-h-screen font-sans antialiased`}

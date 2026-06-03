@@ -95,6 +95,7 @@ export async function upsertUserFromClerkData(
   await syncClerkPublicMetadata(data.id, {
     role: user.role,
     dbUserId: user.id,
+    isBlocked: user.isBlocked,
   });
 
   return user;

@@ -10,7 +10,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireStoreStaff();
+  const user = await requireStoreStaff();
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,7 +39,7 @@ export default async function AdminLayout({
       </header>
 
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:flex-row lg:gap-12">
-        <AdminSidebar />
+        <AdminSidebar role={user.role} />
         <div className="min-w-0 flex-1">{children}</div>
       </div>
     </div>

@@ -1,29 +1,52 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { ProductGrid } from "@/components/shop/product-grid";
 import { RecentlyViewedProducts } from "@/components/shop/recently-viewed-products";
 import { Button } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
+import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/lib/constants/routes";
-import { queryProducts, getActiveCategories } from "@/lib/services/catalog.service";
+import {
+  getActiveCategories,
+  getBestSellingProducts,
+  queryProducts,
+} from "@/lib/services/catalog.service";
+import { getRuntimeSiteConfig } from "@/lib/services/site-settings.service";
 
 export default async function HomePage() {
-  const { hero, brand } = siteConfig;
+  const config = await getRuntimeSiteConfig();
+  const { hero, brand, homepage } = config;
 
-  const [{ items: featured }, { items: newArrivals }, categories] = await Promise.all([
-    queryProducts({ featuredOnly: true, pageSize: 4 }),
-    queryProducts({ pageSize: 8, sort: "newest" }),
-    getActiveCategories(),
+  const [{ items: featured }, categories, bestSellers] = await Promise.all([
+    homepage.showFeaturedProducts
+      ? queryProducts({ featuredOnly: true, pageSize: 4 })
+      : Promise.resolve({ items: [] }),
+    homepage.showCategories ? getActiveCategories() : Promise.resolve([]),
+    homepage.showBestSellers
+      ? getBestSellingProducts(8)
+      : Promise.resolve({ items: [] }),
   ]);
 
   return (
     <>
       <section className="relative overflow-hidden border-b border-border bg-card">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute -bottom-28 -right-24 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
-        </div>
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+        {hero.imageUrl ? (
+          <>
+            <Image
+              src={hero.imageUrl}
+              alt=""
+              fill
+              className="object-cover opacity-20"
+              priority
+            />
+          </>
+        ) : (
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+            <div className="absolute -bottom-28 -right-24 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
+          </div>
+        )}
+        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
           <p className="text-sm font-medium uppercase tracking-wider text-accent">
             {hero.eyebrow}
           </p>
@@ -46,7 +69,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {categories.length > 0 && (
+      {homepage.showCategories && categories.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
           <div className="flex items-end justify-between gap-4">
             <h2 className="text-2xl font-bold text-primary">Categories</h2>
@@ -74,13 +97,13 @@ export default async function HomePage() {
         </section>
       )}
 
-      {newArrivals.length > 0 && (
+      {homepage.showBestSellers && bestSellers.items.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-primary">New arrivals</h2>
+              <h2 className="text-2xl font-bold text-primary">Best sellers</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Freshly added products — updated regularly.
+                Top products by order volume.
               </p>
             </div>
             <Link
@@ -91,12 +114,12 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="mt-6">
-            <ProductGrid products={newArrivals} />
+            <ProductGrid products={bestSellers.items} />
           </div>
         </section>
       )}
 
-      {featured.length > 0 && (
+      {homepage.showFeaturedProducts && featured.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
           <div className="flex items-end justify-between gap-4">
             <h2 className="text-2xl font-bold text-primary">Featured</h2>
@@ -117,14 +140,39 @@ export default async function HomePage() {
         <RecentlyViewedProducts />
       </div>
 
-      {featured.length === 0 && categories.length === 0 && (
-        <section className="mx-auto max-w-6xl px-4 py-16 text-center sm:px-6">
-          <p className="text-muted-foreground">
-            {brand.name} is ready. Add categories and products from the admin
-            dashboard.
-          </p>
+      {homepage.showNewsletter && (
+        <section className="border-t border-border bg-card">
+          <div className="mx-auto max-w-xl px-4 py-12 text-center sm:px-6">
+            <h2 className="text-xl font-bold text-primary">Stay in the loop</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Get updates on new products and offers from {brand.name}.
+            </p>
+            <form className="mt-6 flex flex-col gap-2 sm:flex-row" action="#">
+              <Input
+                type="email"
+                name="email"
+                placeholder="you@example.com"
+                className="flex-1"
+                disabled
+              />
+              <Button type="button" disabled>
+                Coming soon
+              </Button>
+            </form>
+          </div>
         </section>
       )}
+
+      {featured.length === 0 &&
+        categories.length === 0 &&
+        bestSellers.items.length === 0 && (
+          <section className="mx-auto max-w-6xl px-4 py-16 text-center sm:px-6">
+            <p className="text-muted-foreground">
+              {brand.name} is ready. Add categories and products from the admin
+              dashboard.
+            </p>
+          </section>
+        )}
     </>
   );
 }

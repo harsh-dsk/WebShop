@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 import { getCartWithItems } from "@/lib/services/cart.service";
+import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -22,6 +23,20 @@ export default async function CheckoutPage() {
 
   const fullName =
     [user.firstName, user.lastName].filter(Boolean).join(" ") || user.fullName || undefined;
+  const latestOrder = await db.order.findFirst({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      shippingName: true,
+      shippingEmail: true,
+      shippingPhone: true,
+      shippingAddress: true,
+      shippingCity: true,
+      shippingState: true,
+      shippingPostalCode: true,
+    },
+  });
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
@@ -50,6 +65,7 @@ export default async function CheckoutPage() {
               shippingState: user.state ?? undefined,
               shippingPostalCode: user.postalCode ?? undefined,
           }}
+          previousOrder={latestOrder ?? undefined}
         />
       </div>
 

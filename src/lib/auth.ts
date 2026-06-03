@@ -27,7 +27,7 @@ export async function getCurrentUser(): Promise<User | null> {
     where: { clerkId: userId },
   });
 
-  if (existing) return existing;
+  if (existing?.isBlocked) return existing;
 
   const clerkUser = await currentUser();
   if (!clerkUser || clerkUser.id !== userId) return null;
@@ -39,6 +39,9 @@ export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();
   if (!user) {
     redirect(ROUTES.signIn);
+  }
+  if (user.isBlocked) {
+    redirect(ROUTES.accountBlocked);
   }
   return user;
 }
