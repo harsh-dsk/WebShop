@@ -1,6 +1,3 @@
-// Reusable ecommerce platform — PostgreSQL (Neon)
-// Customize per deployment via src/config/site.ts
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,94 +7,74 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  CUSTOMER
-  ADMIN
-  SUPER_ADMIN
-}
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-}
-
-enum PaymentStatus {
-  PENDING
-  PAID
-  FAILED
-  REFUNDED
-}
-
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String   @unique
+  id        String    @id @default(cuid())
+  clerkId   String    @unique
+  email     String    @unique
   firstName String?
   lastName  String?
+  fullName  String?
   phone     String?
+  address   String?
+  city      String?
+  state     String?
+  postalCode String?
   imageUrl  String?
-  role      Role     @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  cart     Cart?
-  wishlist Wishlist?
-  orders   Order[]
+  role      Role      @default(CUSTOMER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  cart      Cart?
+  orders    Order[]
+  wishlist  Wishlist?
 
   @@index([role])
   @@map("users")
 }
 
 model Category {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   name            String
-  slug            String   @unique
-  description     String?  @db.Text
+  slug            String    @unique
+  description     String?
   imageUrl        String?
-  sortOrder       Int      @default(0)
-  isActive        Boolean  @default(true)
-  attributeSchema Json     @default("[]")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  products Product[]
+  sortOrder       Int       @default(0)
+  isActive        Boolean   @default(true)
+  attributeSchema Json      @default("[]")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  products        Product[]
 
   @@index([isActive, sortOrder])
   @@map("categories")
 }
 
 model Product {
-  id                String   @id @default(cuid())
+  id                String           @id @default(cuid())
   name              String
-  slug              String   @unique
-  shortDescription  String?  @db.VarChar(500)
-  description       String?  @db.Text
-  descriptionHtml   String?  @db.Text
-  price             Decimal  @db.Decimal(10, 2)
-  compareAtPrice    Decimal? @db.Decimal(10, 2)
-  sku               String?  @unique
-  stock             Int      @default(0)
-  lowStockThreshold Int      @default(5)
-  images            Json     @default("[]")
-  metadata          Json     @default("{}")
-  tags              String[] @default([])
-  metaTitle         String?  @db.VarChar(70)
-  metaDescription   String?  @db.VarChar(160)
-  isActive          Boolean  @default(true)
-  isFeatured        Boolean  @default(false)
+  slug              String           @unique
+  shortDescription  String?          @db.VarChar(500)
+  description       String?
+  descriptionHtml   String?
+  price             Decimal          @db.Decimal(10, 2)
+  compareAtPrice    Decimal?         @db.Decimal(10, 2)
+  sku               String?          @unique
+  stock             Int              @default(0)
+  lowStockThreshold Int              @default(5)
+  images            Json             @default("[]")
+  metadata          Json             @default("{}")
+  tags              String[]         @default([])
+  metaTitle         String?          @db.VarChar(70)
+  metaDescription   String?          @db.VarChar(160)
+  isActive          Boolean          @default(true)
+  isFeatured        Boolean          @default(false)
   categoryId        String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  category      Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  variants      ProductVariant[]
-  cartItems     CartItem[]
-  wishlistItems WishlistItem[]
-  orderItems    OrderItem[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  variants          ProductVariant[]
+  category          Category         @relation(fields: [categoryId], references: [id])
+  wishlistItems     WishlistItem[]
 
   @@index([categoryId])
   @@index([isActive, isFeatured])
@@ -120,21 +97,19 @@ model ProductVariant {
   sortOrder  Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@map("product_variants")
 }
 
 model Cart {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items CartItem[]
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("carts")
 }
@@ -146,9 +121,8 @@ model CartItem {
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([cartId, productId])
   @@index([cartId])
@@ -156,13 +130,12 @@ model CartItem {
 }
 
 model Wishlist {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items WishlistItem[]
+  id        String         @id @default(cuid())
+  userId    String         @unique
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  items     WishlistItem[]
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("wishlists")
 }
@@ -172,9 +145,8 @@ model WishlistItem {
   wishlistId String
   productId  String
   createdAt  DateTime @default(now())
-
-  wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
-  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
 
   @@unique([wishlistId, productId])
   @@index([wishlistId])
@@ -183,44 +155,61 @@ model WishlistItem {
 }
 
 model Order {
-  id            String        @id @default(cuid())
-  orderNumber   String        @unique
-  userId        String
-  status        OrderStatus   @default(PENDING)
-  paymentStatus PaymentStatus @default(PENDING)
-
+  id                   String        @id @default(cuid())
+  orderNumber          String        @unique
+  userId               String
+  status               OrderStatus   @default(PENDING)
+  paymentStatus        PaymentStatus @default(PENDING)
+  shippingName         String
+  shippingEmail        String
+  shippingPhone        String
+  shippingAddress      String
+  shippingCity         String
+  shippingState        String?
+  shippingPostalCode   String
+  shippingCountry      String        @default("IN")
+  subtotal             Decimal       @db.Decimal(10, 2)
+  shippingCost         Decimal       @default(0) @db.Decimal(10, 2)
+  tax                  Decimal       @default(0) @db.Decimal(10, 2)
+  total                Decimal       @db.Decimal(10, 2)
+  razorpayOrderId      String?       @unique
+  razorpayPaymentId    String?       @unique
+  razorpaySignature    String?
+  notes                String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
   expectedDeliveryDate DateTime?
-
-  shippingName       String
-  shippingEmail      String
-  shippingPhone      String
-  shippingAddress    String  @db.Text
-  shippingCity       String
-  shippingState      String?
-  shippingPostalCode String
-  shippingCountry    String  @default("IN")
-
-  subtotal     Decimal @db.Decimal(10, 2)
-  shippingCost Decimal @default(0) @db.Decimal(10, 2)
-  tax          Decimal @default(0) @db.Decimal(10, 2)
-  total        Decimal @db.Decimal(10, 2)
-
-  razorpayOrderId   String? @unique
-  razorpayPaymentId String? @unique
-  razorpaySignature String?
-
-  notes     String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user  User        @relation(fields: [userId], references: [id], onDelete: Restrict)
-  items OrderItem[]
+  items                OrderItem[]
+  sentEmails           SentEmail[]
+  user                 User          @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([status])
   @@index([paymentStatus])
   @@index([createdAt])
   @@map("orders")
+}
+
+model SentEmail {
+  id        String                @id @default(cuid())
+  orderId   String
+  type      EmailNotificationType
+  createdAt DateTime              @default(now())
+  order     Order                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, type])
+  @@index([orderId])
+  @@map("sent_emails")
+}
+
+enum EmailNotificationType {
+  ORDER_CONFIRMATION
+  ADMIN_NEW_ORDER
+  STATUS_CONFIRMED
+  STATUS_PROCESSING
+  STATUS_SHIPPED
+  STATUS_DELIVERED
+  STATUS_CANCELLED
 }
 
 model OrderItem {
@@ -233,11 +222,32 @@ model OrderItem {
   unitPrice    Decimal @db.Decimal(10, 2)
   quantity     Int
   lineTotal    Decimal @db.Decimal(10, 2)
-
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product @relation(fields: [productId], references: [id])
 
   @@index([orderId])
   @@index([productId])
   @@map("order_items")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
 }

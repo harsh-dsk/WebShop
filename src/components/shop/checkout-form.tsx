@@ -17,6 +17,10 @@ type CheckoutFormProps = {
     shippingName?: string;
     shippingEmail?: string;
     shippingPhone?: string;
+    shippingAddress?: string;
+    shippingCity?: string;
+    shippingState?: string;
+    shippingPostalCode?: string;
   };
 };
 
@@ -70,17 +74,18 @@ export function CheckoutForm({ subtotal, defaults }: CheckoutFormProps) {
               id="shippingAddress"
               name="shippingAddress"
               required
+              defaultValue={defaults?.shippingAddress}
               rows={3}
               className="mt-1.5"
             />
           </div>
           <div>
             <Label htmlFor="shippingCity">City</Label>
-            <Input id="shippingCity" name="shippingCity" required className="mt-1.5" />
+            <Input id="shippingCity" name="shippingCity" required defaultValue={defaults?.shippingCity} className="mt-1.5" />
           </div>
           <div>
             <Label htmlFor="shippingState">State</Label>
-            <Input id="shippingState" name="shippingState" required className="mt-1.5" />
+            <Input id="shippingState" name="shippingState" required defaultValue={defaults?.shippingState} className="mt-1.5" />
           </div>
           <div className="sm:col-span-2">
             <Label htmlFor="shippingPostalCode">Postal code</Label>
@@ -88,6 +93,7 @@ export function CheckoutForm({ subtotal, defaults }: CheckoutFormProps) {
               id="shippingPostalCode"
               name="shippingPostalCode"
               required
+              defaultValue={defaults?.shippingPostalCode}
               className="mt-1.5"
             />
           </div>

@@ -21,7 +21,7 @@ export default async function CheckoutPage() {
   }
 
   const fullName =
-    [user.firstName, user.lastName].filter(Boolean).join(" ") || undefined;
+    [user.firstName, user.lastName].filter(Boolean).join(" ") || user.fullName || undefined;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
@@ -42,9 +42,13 @@ export default async function CheckoutPage() {
         <CheckoutForm
           subtotal={subtotal}
           defaults={{
-            shippingName: fullName,
-            shippingEmail: user.email,
-            shippingPhone: user.phone ?? undefined,
+              shippingName: fullName,
+              shippingEmail: user.email,
+              shippingPhone: user.phone ?? undefined,
+              shippingAddress: user.address ?? undefined,
+              shippingCity: user.city ?? undefined,
+              shippingState: user.state ?? undefined,
+              shippingPostalCode: user.postalCode ?? undefined,
           }}
         />
       </div>

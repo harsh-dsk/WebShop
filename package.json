@@ -15,12 +15,15 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "email:test": "tsx scripts/test-emails.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.12.0",
     "@hookform/resolvers": "^3.10.0",
     "@prisma/client": "^6.5.0",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.8",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.5.1",
     "clsx": "^2.1.1",
@@ -30,6 +33,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.0",
+    "resend": "^6.12.4",
     "sonner": "^2.0.0",
     "svix": "^1.61.0",
     "tailwind-merge": "^3.0.0",

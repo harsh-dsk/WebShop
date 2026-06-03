@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import { Button } from "@/components/ui/button";
+import AddressForm from "@/components/profile/address-form";
 import { getSessionSummary, requireUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 
@@ -91,6 +92,21 @@ export default async function ProfilePage() {
           <Link href={ROUTES.cart}>
             <Button variant="outline">View cart</Button>
           </Link>
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold text-foreground">Shipping address</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Save a default shipping address for checkout.</p>
+          <AddressForm
+            initial={{
+              fullName: user.fullName ?? `${user.firstName ?? ""} ${user.lastName ?? ""}`,
+              phone: user.phone ?? undefined,
+              address: user.address ?? undefined,
+              city: user.city ?? undefined,
+              state: user.state ?? undefined,
+              postalCode: user.postalCode ?? undefined,
+            }}
+          />
         </div>
       </div>
     </section>

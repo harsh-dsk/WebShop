@@ -8,6 +8,10 @@ import { requireStoreStaff, requireUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 import { db } from "@/lib/db";
 import { restoreProductStock } from "@/lib/services/inventory.service";
+import {
+  queueOrderPlacedEmails,
+  queueOrderStatusEmail,
+} from "@/lib/services/email.service";
 import { placeCodOrder } from "@/lib/services/order.service";
 import { parseCheckoutFormData } from "@/lib/validations/checkout";
 import { expectedDeliverySchema } from "@/lib/validations/delivery";
@@ -41,6 +45,8 @@ export async function placeOrder(
     return { error: message };
   }
 
+  queueOrderPlacedEmails(order.id);
+
   revalidatePath(ROUTES.cart);
   revalidatePath(ROUTES.checkout);
   revalidatePath(ROUTES.accountOrders);
@@ -70,6 +76,11 @@ export async function updateOrderStatus(
     return { error: "Order not found" };
   }
 
+  const previousStatus = order.status;
+  if (previousStatus === status) {
+    return { success: true };
+  }
+
   // If transitioning to CANCELLED from a non-cancelled status, restore inventory.
   await db.$transaction(async (tx) => {
     if (status === OrderStatus.CANCELLED && order.status !== OrderStatus.CANCELLED) {
@@ -93,6 +104,8 @@ export async function updateOrderStatus(
   revalidatePath(`${ROUTES.adminOrders}/${orderId}`);
   revalidatePath(ROUTES.accountOrders);
   revalidatePath(`${ROUTES.accountOrders}/${orderId}`);
+
+  queueOrderStatusEmail(orderId, status);
 
   return { success: true };
 }
