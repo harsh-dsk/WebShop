@@ -37,16 +37,24 @@ export default async function AdminProductsPage() {
         }
       />
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <table className="w-full min-w-[800px] text-left text-sm">
+      {products.length === 0 ? (
+        <div className="empty-state">
+          <p className="text-sm text-muted-foreground">
+            No products yet. Create your first product to get started.
+          </p>
+        </div>
+      ) : (
+      <div className="data-table-wrap">
+        <div className="data-table-scroll">
+        <table className="data-table min-w-[800px]">
           <thead>
-            <tr className="border-b border-border bg-muted/40">
-              <th className="px-4 py-3 font-medium">Product</th>
-              <th className="px-4 py-3 font-medium">Category</th>
-              <th className="px-4 py-3 font-medium">Price</th>
-              <th className="px-4 py-3 font-medium">Stock</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Actions</th>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -117,12 +125,9 @@ export default async function AdminProductsPage() {
             })}
           </tbody>
         </table>
-        {products.length === 0 && (
-          <p className="p-10 text-center text-muted-foreground">
-            No products yet.
-          </p>
-        )}
+        </div>
       </div>
+      )}
     </div>
   );
 }

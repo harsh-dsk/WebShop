@@ -45,7 +45,7 @@ export function UserFilters() {
 
   return (
     <form
-      className="flex flex-wrap items-end gap-3"
+      className="surface-card flex flex-wrap items-end gap-4 p-4 sm:p-5"
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
@@ -59,11 +59,11 @@ export function UserFilters() {
         router.push(`${ROUTES.superAdminUsers}?${params.toString()}`);
       }}
     >
-      <div className="min-w-[200px] flex-1">
+      <div className="min-w-[200px] flex-1 space-y-2">
         <Label htmlFor="q">Search</Label>
         <Input id="q" name="q" defaultValue={searchParams.get("q") ?? ""} placeholder="Email or name" />
       </div>
-      <div>
+      <div className="space-y-2">
         <Label htmlFor="role">Role</Label>
         <Select id="role" name="role" defaultValue={searchParams.get("role") ?? ""}>
           <option value="">All roles</option>
@@ -72,7 +72,7 @@ export function UserFilters() {
           <option value={Role.SUPER_ADMIN}>Super Admin</option>
         </Select>
       </div>
-      <div>
+      <div className="space-y-2">
         <Label htmlFor="blocked">Status</Label>
         <Select id="blocked" name="blocked" defaultValue={searchParams.get("blocked") ?? ""}>
           <option value="">All</option>
@@ -133,33 +133,34 @@ export function UsersTable({ users }: { users: UserRow[] }) {
 
   if (users.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
-        No users match your filters.
-      </p>
+      <div className="empty-state">
+        <p className="text-sm text-muted-foreground">No users match your filters.</p>
+      </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border">
-      <table className="w-full min-w-[640px] text-left text-sm">
-        <thead className="border-b border-border bg-muted/50">
-          <tr>
-            <th className="px-4 py-3 font-medium">User</th>
-            <th className="px-4 py-3 font-medium">Role</th>
-            <th className="px-4 py-3 font-medium">Orders</th>
-            <th className="px-4 py-3 font-medium">Status</th>
-            <th className="px-4 py-3 font-medium">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
+    <div className="data-table-wrap">
+      <div className="data-table-scroll">
+        <table className="data-table min-w-[720px]">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Orders</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
           {users.map((user) => {
             const name =
               (user.fullName ?? [user.firstName, user.lastName].filter(Boolean).join(" ")) ||
               user.email;
 
             return (
-              <tr key={user.id} className="bg-card">
-                <td className="px-4 py-3">
+              <tr key={user.id}>
+                <td>
                   <Link
                     href={`${ROUTES.superAdminUsers}/${user.id}`}
                     className="font-medium hover:text-primary"
@@ -168,20 +169,20 @@ export function UsersTable({ users }: { users: UserRow[] }) {
                   </Link>
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                 </td>
-                <td className="px-4 py-3">
+                <td>
                   <Badge variant={user.role === "CUSTOMER" ? "muted" : "default"}>
                     {user.role}
                   </Badge>
                 </td>
-                <td className="px-4 py-3">{user._count.orders}</td>
-                <td className="px-4 py-3">
+                <td>{user._count.orders}</td>
+                <td>
                   {user.isBlocked ? (
                     <Badge variant="danger">Blocked</Badge>
                   ) : (
                     <Badge variant="default">Active</Badge>
                   )}
                 </td>
-                <td className="px-4 py-3">
+                <td>
                   <div className="flex flex-col gap-2">
                     <RoleActions userId={user.id} currentRole={user.role} />
                     <Button
@@ -213,7 +214,8 @@ export function UsersTable({ users }: { users: UserRow[] }) {
             );
           })}
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   );
 }

@@ -25,6 +25,9 @@ function buildHref(
   return qs ? `${basePath}?${qs}` : basePath;
 }
 
+const pageLinkClass =
+  "flex h-10 min-w-10 items-center justify-center rounded-lg border px-3 text-sm font-medium transition-all duration-200";
+
 export function Pagination({
   basePath,
   page,
@@ -48,7 +51,10 @@ export function Pagination({
       {page > 1 && (
         <Link
           href={buildHref(basePath, page - 1, searchParams)}
-          className="rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium transition hover:bg-muted"
+          className={cn(
+            pageLinkClass,
+            "border-border bg-card shadow-sm hover:border-primary/20 hover:bg-muted",
+          )}
         >
           Previous
         </Link>
@@ -61,15 +67,17 @@ export function Pagination({
         return (
           <span key={p} className="flex items-center gap-2">
             {showEllipsis && (
-              <span className="px-1 text-muted-foreground">…</span>
+              <span className="px-1 text-muted-foreground" aria-hidden>
+                …
+              </span>
             )}
             <Link
               href={buildHref(basePath, p, searchParams)}
               className={cn(
-                "flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm font-medium transition",
+                pageLinkClass,
                 p === page
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card hover:bg-muted",
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                  : "border-border bg-card hover:border-primary/20 hover:bg-muted",
               )}
               aria-current={p === page ? "page" : undefined}
             >
@@ -82,7 +90,10 @@ export function Pagination({
       {page < totalPages && (
         <Link
           href={buildHref(basePath, page + 1, searchParams)}
-          className="rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium transition hover:bg-muted"
+          className={cn(
+            pageLinkClass,
+            "border-border bg-card shadow-sm hover:border-primary/20 hover:bg-muted",
+          )}
         >
           Next
         </Link>

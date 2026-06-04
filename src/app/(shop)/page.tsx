@@ -31,32 +31,30 @@ export default async function HomePage() {
     <>
       <section className="relative overflow-hidden border-b border-border bg-card">
         {hero.imageUrl ? (
-          <>
-            <Image
-              src={hero.imageUrl}
-              alt=""
-              fill
-              className="object-cover opacity-20"
-              priority
-            />
-          </>
+          <Image
+            src={hero.imageUrl}
+            alt=""
+            fill
+            className="object-cover opacity-[0.12]"
+            priority
+          />
         ) : (
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-            <div className="absolute -bottom-28 -right-24 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
+          <div className="pointer-events-none absolute inset-0" aria-hidden>
+            <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+            <div className="absolute -bottom-28 -right-24 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
           </div>
         )}
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-          <p className="text-sm font-medium uppercase tracking-wider text-accent">
+        <div className="page-container relative py-16 sm:py-24 lg:py-28">
+          <p className="text-sm font-semibold uppercase tracking-wider text-accent">
             {hero.eyebrow}
           </p>
-          <h1 className="mt-3 max-w-2xl text-4xl font-bold tracking-tight text-primary sm:text-5xl">
+          <h1 className="mt-4 max-w-2xl text-4xl font-bold tracking-tight text-foreground text-balance sm:text-5xl lg:text-6xl">
             {hero.title}
           </h1>
-          <p className="mt-4 max-w-xl text-lg text-muted-foreground">
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
             {hero.subtitle}
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-10 flex flex-wrap gap-3">
             <Link href={hero.primaryCta.href}>
               <Button size="lg">{hero.primaryCta.label}</Button>
             </Link>
@@ -70,25 +68,24 @@ export default async function HomePage() {
       </section>
 
       {homepage.showCategories && categories.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        <section className="page-container py-12 sm:py-16">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-2xl font-bold text-primary">Categories</h2>
-            <Link
-              href={ROUTES.categories}
-              className="text-sm font-medium text-accent hover:underline"
-            >
+            <h2 className="section-title">Categories</h2>
+            <Link href={ROUTES.categories} className="section-link">
               View all
             </Link>
           </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {categories.slice(0, 4).map((cat) => (
               <Link
                 key={cat.id}
                 href={`${ROUTES.categories}/${cat.slug}`}
-                className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-0.5 hover:shadow-md"
+                className="group surface-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/15 hover:shadow-hover"
               >
-                <h3 className="font-semibold text-foreground">{cat.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <h3 className="font-semibold text-foreground transition-colors group-hover:text-primary">
+                  {cat.name}
+                </h3>
+                <p className="mt-1.5 text-sm text-muted-foreground">
                   {cat._count.products} products
                 </p>
               </Link>
@@ -98,56 +95,50 @@ export default async function HomePage() {
       )}
 
       {homepage.showBestSellers && bestSellers.items.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <section className="page-container pb-16 sm:pb-20">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-primary">Best sellers</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <h2 className="section-title">Best sellers</h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">
                 Top products by order volume.
               </p>
             </div>
-            <Link
-              href={ROUTES.products}
-              className="text-sm font-medium text-accent hover:underline"
-            >
+            <Link href={ROUTES.products} className="section-link">
               View all
             </Link>
           </div>
-          <div className="mt-6">
+          <div className="mt-8">
             <ProductGrid products={bestSellers.items} />
           </div>
         </section>
       )}
 
       {homepage.showFeaturedProducts && featured.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <section className="page-container pb-16 sm:pb-20">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-2xl font-bold text-primary">Featured</h2>
-            <Link
-              href={ROUTES.products}
-              className="text-sm font-medium text-accent hover:underline"
-            >
+            <h2 className="section-title">Featured</h2>
+            <Link href={ROUTES.products} className="section-link">
               Shop all
             </Link>
           </div>
-          <div className="mt-6">
+          <div className="mt-8">
             <ProductGrid products={featured} />
           </div>
         </section>
       )}
 
-      <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+      <div className="page-container pb-16 sm:pb-20">
         <RecentlyViewedProducts />
       </div>
 
       {homepage.showNewsletter && (
         <section className="border-t border-border bg-card">
-          <div className="mx-auto max-w-xl px-4 py-12 text-center sm:px-6">
-            <h2 className="text-xl font-bold text-primary">Stay in the loop</h2>
+          <div className="page-container max-w-xl py-14 text-center">
+            <h2 className="text-xl font-bold text-foreground">Stay in the loop</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Get updates on new products and offers from {brand.name}.
             </p>
-            <form className="mt-6 flex flex-col gap-2 sm:flex-row" action="#">
+            <form className="mt-8 flex flex-col gap-3 sm:flex-row" action="#">
               <Input
                 type="email"
                 name="email"
@@ -155,7 +146,7 @@ export default async function HomePage() {
                 className="flex-1"
                 disabled
               />
-              <Button type="button" disabled>
+              <Button type="button" disabled className="sm:shrink-0">
                 Coming soon
               </Button>
             </form>
@@ -166,7 +157,7 @@ export default async function HomePage() {
       {featured.length === 0 &&
         categories.length === 0 &&
         bestSellers.items.length === 0 && (
-          <section className="mx-auto max-w-6xl px-4 py-16 text-center sm:px-6">
+          <section className="page-container py-20 text-center">
             <p className="text-muted-foreground">
               {brand.name} is ready. Add categories and products from the admin
               dashboard.

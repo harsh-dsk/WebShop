@@ -39,37 +39,37 @@ export default async function CheckoutPage() {
   });
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <nav className="text-sm text-muted-foreground">
-        <Link href={ROUTES.cart} className="hover:text-primary">
-          Cart
-        </Link>
-        <span className="mx-2">/</span>
-        <span>Checkout</span>
+    <div className="page-container-narrow py-10 sm:py-12 lg:max-w-4xl">
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <Link href={ROUTES.cart}>Cart</Link>
+        <span aria-hidden>/</span>
+        <span className="text-foreground">Checkout</span>
       </nav>
 
-      <h1 className="mt-4 text-3xl font-bold text-primary">Checkout</h1>
-      <p className="mt-2 text-muted-foreground">
-        Complete your details to place a Cash on Delivery order.
-      </p>
+      <header className="page-header mt-6">
+        <h1 className="page-title text-balance">Checkout</h1>
+        <p className="page-description">
+          Complete your details to place a Cash on Delivery order.
+        </p>
+      </header>
 
-      <div className="mt-8">
+      <div className="mt-8 lg:mt-10">
         <CheckoutForm
           subtotal={subtotal}
           defaults={{
-              shippingName: fullName,
-              shippingEmail: user.email,
-              shippingPhone: user.phone ?? undefined,
-              shippingAddress: user.address ?? undefined,
-              shippingCity: user.city ?? undefined,
-              shippingState: user.state ?? undefined,
-              shippingPostalCode: user.postalCode ?? undefined,
+            shippingName: fullName,
+            shippingEmail: user.email,
+            shippingPhone: user.phone ?? undefined,
+            shippingAddress: user.address ?? undefined,
+            shippingCity: user.city ?? undefined,
+            shippingState: user.state ?? undefined,
+            shippingPostalCode: user.postalCode ?? undefined,
           }}
           previousOrder={latestOrder ?? undefined}
         />
       </div>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <Link href={ROUTES.cart}>
           <Button variant="outline">Back to cart</Button>
         </Link>

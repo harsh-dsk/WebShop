@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 
 import { OrderStatusBadge } from "@/components/shop/order-status-badge";
@@ -32,22 +33,22 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <div className="rounded-2xl border border-border bg-card p-8 text-center sm:p-10">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl text-primary">
-          ✓
+    <div className="page-container-narrow py-12 sm:py-16">
+      <div className="surface-elevated animate-fade-in p-8 text-center sm:p-10">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+          <CheckCircle2 className="h-8 w-8" aria-hidden />
         </div>
-        <h1 className="mt-6 text-2xl font-bold text-primary sm:text-3xl">
+        <h1 className="mt-6 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Order placed successfully
         </h1>
         <p className="mt-2 text-muted-foreground">
           Thank you! Your Cash on Delivery order has been received.
         </p>
 
-        <dl className="mt-8 space-y-3 rounded-xl bg-muted/40 p-6 text-left text-sm">
+        <dl className="mt-8 space-y-3 rounded-lg border border-border bg-muted/30 p-6 text-left text-sm">
           <div className="flex justify-between gap-4">
             <dt className="text-muted-foreground">Order number</dt>
-            <dd className="font-mono font-medium">{order.orderNumber}</dd>
+            <dd className="font-mono font-medium tabular-nums">{order.orderNumber}</dd>
           </div>
           <div className="flex justify-between gap-4">
             <dt className="text-muted-foreground">Status</dt>
@@ -57,7 +58,7 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
           </div>
           <div className="flex justify-between gap-4">
             <dt className="text-muted-foreground">Total</dt>
-            <dd className="font-semibold text-primary">
+            <dd className="font-semibold tabular-nums text-foreground">
               {formatPrice(Number(order.total))}
             </dd>
           </div>

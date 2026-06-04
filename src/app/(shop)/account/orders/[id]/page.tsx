@@ -30,18 +30,18 @@ export default async function AccountOrderDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <nav className="text-sm text-muted-foreground">
-        <Link href={ROUTES.accountOrders} className="hover:text-primary">
+      <nav className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <Link href={ROUTES.accountOrders} className="transition hover:text-primary">
           My orders
         </Link>
-        <span className="mx-2">/</span>
-        <span>{order.orderNumber}</span>
+        <span className="mx-3">/</span>
+        <span className="text-foreground">{order.orderNumber}</span>
       </nav>
 
-      <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
+      <div className="mt-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-primary">Order details</h1>
-          <p className="mt-1 font-mono text-sm text-muted-foreground">
+          <h1 className="text-4xl font-bold text-primary">Order details</h1>
+          <p className="mt-2 font-mono text-sm font-medium text-muted-foreground">
             {order.orderNumber}
           </p>
         </div>
@@ -49,79 +49,77 @@ export default async function AccountOrderDetailPage({ params }: PageProps) {
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-border bg-card p-6">
-          <h2 className="font-semibold">Shipping</h2>
-          <address className="mt-3 not-italic text-sm leading-relaxed text-muted-foreground">
-            {order.shippingName}
-            <br />
-            {order.shippingAddress}
-            <br />
-            {order.shippingCity}
-            {order.shippingState ? `, ${order.shippingState}` : ""}{" "}
-            {order.shippingPostalCode}
-            <br />
-            {order.shippingPhone}
-            <br />
-            {order.shippingEmail}
+        <section className="rounded-xl border-2 border-border bg-card p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-foreground">Shipping</h2>
+          <address className="mt-4 not-italic space-y-1 text-sm leading-relaxed text-foreground">
+            <p className="font-medium">{order.shippingName}</p>
+            <p>{order.shippingAddress}</p>
+            <p>
+              {order.shippingCity}
+              {order.shippingState ? `, ${order.shippingState}` : ""}{" "}
+              {order.shippingPostalCode}
+            </p>
+            <p className="pt-2">{order.shippingPhone}</p>
+            <p>{order.shippingEmail}</p>
           </address>
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-6">
-          <h2 className="font-semibold">Summary</h2>
-          <dl className="mt-3 space-y-2 text-sm">
-            <div className="flex justify-between">
+        <section className="rounded-xl border-2 border-border bg-card p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-foreground">Summary</h2>
+          <dl className="mt-4 space-y-3 text-sm">
+            <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Placed</dt>
-              <dd>
+              <dd className="font-medium text-foreground">
                 {new Date(order.createdAt).toLocaleString(undefined, {
                   dateStyle: "medium",
                   timeStyle: "short",
                 })}
               </dd>
             </div>
-            <div className="flex justify-between">
+            <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Subtotal</dt>
-              <dd>{formatPrice(Number(order.subtotal))}</dd>
+              <dd className="font-medium text-foreground">{formatPrice(Number(order.subtotal))}</dd>
             </div>
-            <div className="flex justify-between">
+            <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Shipping</dt>
-              <dd>{formatPrice(Number(order.shippingCost))}</dd>
+              <dd className="font-medium text-foreground">{formatPrice(Number(order.shippingCost))}</dd>
             </div>
-            <div className="flex justify-between">
+            <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Tax</dt>
-              <dd>{formatPrice(Number(order.tax))}</dd>
+              <dd className="font-medium text-foreground">{formatPrice(Number(order.tax))}</dd>
             </div>
-            <div className="flex justify-between border-t border-border pt-2 font-semibold">
+            <div className="flex items-center justify-between border-t-2 border-border pt-3 font-semibold">
               <dt>Total</dt>
-              <dd className="text-primary">{formatPrice(Number(order.total))}</dd>
+              <dd className="text-lg text-primary">{formatPrice(Number(order.total))}</dd>
             </div>
-            <div className="flex justify-between">
+            <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Payment</dt>
-              <dd>Cash on Delivery ({order.paymentStatus.toLowerCase()})</dd>
+              <dd className="rounded-lg bg-accent/10 px-3 py-1 font-medium text-accent">Cash on Delivery</dd>
             </div>
           </dl>
         </section>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-8 rounded-xl border-2 border-border bg-card p-6 shadow-sm">
         <OrderTimeline
           status={order.status}
           expectedDeliveryDate={order.expectedDeliveryDate}
         />
       </div>
 
-      <section className="mt-8 rounded-2xl border border-border bg-card p-6">
-        <h2 className="font-semibold">Items</h2>
-        <ul className="mt-4 divide-y divide-border">
+      <section className="mt-8 rounded-xl border-2 border-border bg-card p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-foreground">Items</h2>
+        <ul className="mt-4 divide-y-2 divide-border">
           {order.items.map((item) => (
-            <li key={item.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+            <li key={item.id} className="flex gap-4 py-5 first:pt-0 last:pb-0">
+              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-border bg-muted shadow-sm">
                 {item.productImage ? (
                   <Image
                     src={item.productImage}
                     alt={item.productName}
                     fill
                     className="object-cover"
-                    sizes="64px"
+                    sizes="80px"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
@@ -132,15 +130,15 @@ export default async function AccountOrderDetailPage({ params }: PageProps) {
               <div className="min-w-0 flex-1">
                 <Link
                   href={`${ROUTES.products}/${item.productSlug}`}
-                  className="font-medium hover:text-primary"
+                  className="font-semibold text-foreground hover:text-primary transition"
                 >
                   {item.productName}
                 </Link>
-                <p className="text-sm text-muted-foreground">
-                  Qty {item.quantity} × {formatPrice(Number(item.unitPrice))}
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Qty <span className="font-medium">{item.quantity}</span> × {formatPrice(Number(item.unitPrice))}
                 </p>
               </div>
-              <p className="font-medium">{formatPrice(Number(item.lineTotal))}</p>
+              <p className="text-right font-semibold text-primary">{formatPrice(Number(item.lineTotal))}</p>
             </li>
           ))}
         </ul>

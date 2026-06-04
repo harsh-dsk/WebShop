@@ -62,10 +62,10 @@ export function CartItemRow({ item }: CartItemRowProps) {
   }
 
   return (
-    <li className="flex gap-4 border-b border-border py-6 last:border-0">
+    <li className="flex gap-4 py-6 transition-colors last:pb-0 sm:gap-5">
       <Link
         href={`${ROUTES.products}/${item.slug}`}
-        className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-border bg-muted"
+        className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-border bg-muted shadow-sm transition-shadow hover:shadow-md sm:h-28 sm:w-28"
       >
         {item.image ? (
           <Image
@@ -94,7 +94,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
         </p>
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3">
-          <div className="flex items-center gap-1 rounded-xl border border-border">
+          <div className="flex items-center gap-0.5 rounded-lg border border-border bg-card shadow-sm">
             <Button
               type="button"
               variant="ghost"

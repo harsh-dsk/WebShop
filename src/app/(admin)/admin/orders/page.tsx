@@ -16,17 +16,23 @@ export default async function AdminOrdersPage() {
         description="Manage Cash on Delivery orders and fulfillment status."
       />
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
-        <table className="w-full min-w-[720px] text-left text-sm">
+      {orders.length === 0 ? (
+        <div className="empty-state">
+          <p className="text-sm text-muted-foreground">No orders yet.</p>
+        </div>
+      ) : (
+      <div className="data-table-wrap">
+        <div className="data-table-scroll">
+        <table className="data-table min-w-[720px]">
           <thead>
-            <tr className="border-b border-border bg-muted/40">
-              <th className="px-4 py-3 font-medium">Order number</th>
-              <th className="px-4 py-3 font-medium">Customer</th>
-              <th className="px-4 py-3 font-medium">Phone</th>
-              <th className="px-4 py-3 font-medium">Items</th>
-              <th className="px-4 py-3 font-medium">Total</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Date</th>
+            <tr>
+              <th>Order number</th>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Date</th>
             </tr>
           </thead>
           <tbody>
@@ -75,10 +81,9 @@ export default async function AdminOrdersPage() {
             })}
           </tbody>
         </table>
-        {orders.length === 0 && (
-          <p className="p-10 text-center text-muted-foreground">No orders yet.</p>
-        )}
+        </div>
       </div>
+      )}
     </div>
   );
 }

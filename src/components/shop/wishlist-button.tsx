@@ -28,7 +28,10 @@ export function WishlistButton({
         type="button"
         variant={active ? "accent" : "outline"}
         size="lg"
-        className="gap-2 w-full sm:w-auto"
+        className={cn(
+          "gap-2 w-full sm:w-auto transition-all duration-200",
+          active && "shadow-sm",
+        )}
         disabled={pending}
         onClick={() => {
           setStatus(null);
@@ -49,13 +52,20 @@ export function WishlistButton({
             });
           });
         }}
+        aria-pressed={active}
       >
-        <Heart className="h-4 w-4" aria-hidden />
+        <Heart
+          className={cn("h-4 w-4 transition-transform duration-200", active && "fill-current scale-110")}
+          aria-hidden
+        />
         {pending ? "Updating…" : active ? "In wishlist" : "Add to wishlist"}
       </Button>
       {status && (
         <p
-          className={`text-sm ${status.type === "success" ? "text-primary" : "text-red-600"}`}
+          className={cn(
+            "text-sm animate-fade-in",
+            status.type === "success" ? "text-primary" : "text-destructive",
+          )}
           role="status"
         >
           {status.message}
@@ -64,4 +74,3 @@ export function WishlistButton({
     </div>
   );
 }
-

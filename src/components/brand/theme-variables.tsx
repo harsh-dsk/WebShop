@@ -29,6 +29,7 @@ export function ThemeVariables({ config }: ThemeVariablesProps) {
       --muted: ${card};
       --muted-foreground: ${foreground};
       --border: ${card};
+      --ring: ${primary};
       --brand-primary: ${brandPrimary};
       --brand-accent: ${accent};
       --brand-background: ${background};

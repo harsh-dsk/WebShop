@@ -14,33 +14,33 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
+      <header className="sticky top-0 z-40 border-b border-border/80 bg-card/95 shadow-sm backdrop-blur-md">
+        <div className="page-container-wide flex h-14 items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground shadow-sm">
               {siteConfig.logo.text}
             </span>
             <div>
-              <p className="text-sm font-semibold text-primary">
+              <p className="text-sm font-semibold text-foreground">
                 {siteConfig.brand.name}
               </p>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 Store admin
               </p>
             </div>
           </div>
           <Link
             href={ROUTES.home}
-            className="text-sm font-medium text-muted-foreground transition hover:text-primary"
+            className="text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
           >
             View storefront →
           </Link>
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:flex-row lg:gap-12">
+      <div className="page-container-wide flex flex-col gap-8 py-8 lg:flex-row lg:gap-10">
         <AdminSidebar role={user.role} />
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 flex-1 animate-fade-in">{children}</div>
       </div>
     </div>
   );

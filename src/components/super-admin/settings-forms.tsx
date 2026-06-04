@@ -27,12 +27,12 @@ function CheckboxField({
   defaultChecked: boolean;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm">
+    <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5 text-sm transition-colors hover:bg-muted/50 has-[:checked]:border-primary/30 has-[:checked]:bg-primary/5">
       <input
         type="checkbox"
         name={name}
         defaultChecked={defaultChecked}
-        className="h-4 w-4 rounded border-border"
+        className="h-4 w-4 rounded border-border text-primary focus-visible:ring-2 focus-visible:ring-ring/30"
       />
       {label}
     </label>
@@ -45,7 +45,7 @@ export function StoreInfoForm({ settings }: { settings: SiteSettings }) {
 
   return (
     <form
-      className="space-y-4"
+      className="space-y-5"
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);

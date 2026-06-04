@@ -89,21 +89,16 @@ export default async function ProductDetailPage({ params }: PageProps) {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <nav className="text-sm text-muted-foreground">
-        <Link href={ROUTES.products} className="hover:text-primary">
-          Products
-        </Link>
-        <span className="mx-2">/</span>
-        <Link
-          href={`${ROUTES.categories}/${product.category.slug}`}
-          className="hover:text-primary"
-        >
+    <div className="page-container py-10 sm:py-12">
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <Link href={ROUTES.products}>Products</Link>
+        <span aria-hidden>/</span>
+        <Link href={`${ROUTES.categories}/${product.category.slug}`}>
           {product.category.name}
         </Link>
       </nav>
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-2">
+      <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-14">
         <ProductGallery images={images} productName={product.name} />
 
         <div>
@@ -114,7 +109,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             {!outOfStock && isLowStock && <Badge variant="warning">Low stock</Badge>}
           </div>
 
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+          <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {product.name}
           </h1>
 
@@ -135,7 +130,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
           )}
 
           <div className="mt-4 flex items-baseline gap-3">
-            <span className="text-3xl font-bold text-primary">
+            <span className="text-3xl font-bold tracking-tight text-foreground">
               {formatPrice(price)}
             </span>
             {compareAt && compareAt > price && (
@@ -176,7 +171,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 {product.variants.map((v) => (
                   <li
                     key={v.id}
-                    className="flex justify-between rounded-xl border border-border bg-card px-4 py-2 text-sm"
+                    className="flex justify-between rounded-lg border border-border bg-card px-4 py-2.5 text-sm shadow-sm"
                   >
                     <span>{v.name}</span>
                     <span className="text-muted-foreground">
@@ -201,7 +196,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
           ) : null}
 
           {schema.length > 0 && Object.keys(metadata).length > 0 && (
-            <dl className="mt-8 space-y-3 rounded-2xl border border-border bg-card p-6">
+            <dl className="surface-card mt-8 space-y-3 p-6">
               <dt className="text-sm font-semibold text-foreground">Details</dt>
               {schema.map((field) => {
                 const value = metadata[field.key];
@@ -224,10 +219,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
       {related.length > 0 && (
         <section className="mt-14">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-2xl font-bold text-primary">Related products</h2>
+            <h2 className="section-title">Related products</h2>
             <Link
               href={`${ROUTES.categories}/${product.category.slug}`}
-              className="text-sm font-medium text-accent hover:underline"
+              className="section-link"
             >
               View category
             </Link>

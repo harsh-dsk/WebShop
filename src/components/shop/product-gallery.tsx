@@ -23,14 +23,22 @@ export function ProductGallery({ images, productName, className }: ProductGaller
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-muted">
+      <div
+        className={cn(
+          "relative aspect-square overflow-hidden rounded-xl border border-border bg-muted shadow-card",
+          zoomOpen && "ring-2 ring-primary/20",
+        )}
+      >
         {current ? (
           <>
             <Image
               src={current.url}
               alt={current.alt ?? productName}
               fill
-              className={cn("object-cover", zoomOpen && "scale-110")}
+              className={cn(
+                "object-cover transition-transform duration-500 ease-smooth",
+                zoomOpen && "scale-110 cursor-zoom-out",
+              )}
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"
             />
@@ -39,6 +47,7 @@ export function ProductGallery({ images, productName, className }: ProductGaller
                 type="button"
                 variant="outline"
                 size="sm"
+                className="bg-card/95 backdrop-blur-sm"
                 onClick={() => setZoomOpen((v) => !v)}
                 aria-pressed={zoomOpen}
               >
@@ -55,7 +64,7 @@ export function ProductGallery({ images, productName, className }: ProductGaller
       </div>
 
       {safeImages.length > 1 && (
-        <div className="grid grid-cols-5 gap-2 sm:grid-cols-6">
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-6">
           {safeImages.slice(0, 12).map((img, idx) => (
             <button
               key={img.publicId}
@@ -65,10 +74,13 @@ export function ProductGallery({ images, productName, className }: ProductGaller
                 setZoomOpen(false);
               }}
               className={cn(
-                "relative aspect-square overflow-hidden rounded-xl border bg-muted",
-                idx === active ? "border-primary" : "border-border hover:border-primary/40",
+                "relative aspect-square overflow-hidden rounded-lg border-2 bg-muted transition-all duration-200",
+                idx === active
+                  ? "border-primary ring-2 ring-primary/20"
+                  : "border-transparent hover:border-primary/30",
               )}
               aria-label={`View image ${idx + 1}`}
+              aria-current={idx === active}
             >
               <Image
                 src={img.url}
@@ -84,4 +96,3 @@ export function ProductGallery({ images, productName, className }: ProductGaller
     </div>
   );
 }
-

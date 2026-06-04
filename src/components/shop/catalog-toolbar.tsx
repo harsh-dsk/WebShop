@@ -4,8 +4,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import type { ProductSort } from "@/lib/services/catalog.service";
 
 type CategoryOption = { slug: string; name: string };
@@ -49,46 +51,48 @@ export function CatalogToolbar({
 
   return (
     <form
-      className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6"
+      className="surface-card p-4 sm:p-6"
       onSubmit={(e) => {
         e.preventDefault();
         const form = new FormData(e.currentTarget);
         updateParams({ q: String(form.get("q") || "") });
       }}
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="sm:col-span-2">
-          <Label htmlFor="q">Search</Label>
-          <div className="mt-1.5 flex gap-2">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <FormField label="Search" htmlFor="q" className="sm:col-span-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               id="q"
               name="q"
               defaultValue={q}
               placeholder="Search products..."
               disabled={isPending}
+              className="flex-1"
             />
-            <Button type="submit" disabled={isPending}>
-              Search
-            </Button>
-            {(q || category || sort !== "newest") && (
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isPending}
-                onClick={() => {
-                  startTransition(() => router.push(basePath));
-                }}
-              >
-                Clear
+            <div className="flex gap-2">
+              <Button type="submit" disabled={isPending} className="flex-1 sm:flex-none">
+                Search
               </Button>
-            )}
+              {(q || category || sort !== "newest") && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={() => {
+                    startTransition(() => router.push(basePath));
+                  }}
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
+        </FormField>
 
         {showCategoryFilter && (
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
-            <select
+            <Select
               id="category"
               name="category"
               defaultValue={category}
@@ -101,7 +105,6 @@ export function CatalogToolbar({
                 }
                 updateParams({ category: slug || null });
               }}
-              className="mt-1.5 flex h-11 w-full rounded-xl border border-border bg-card px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               <option value="">All categories</option>
               {categories.map((c) => (
@@ -109,27 +112,31 @@ export function CatalogToolbar({
                   {c.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         )}
 
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="sort">Sort by</Label>
-          <select
+          <Select
             id="sort"
             name="sort"
             defaultValue={sort}
             disabled={isPending}
             onChange={(e) => updateParams({ sort: e.target.value })}
-            className="mt-1.5 flex h-11 w-full rounded-xl border border-border bg-card px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
           >
             <option value="newest">Newest</option>
             <option value="price-asc">Price: Low to high</option>
             <option value="price-desc">Price: High to low</option>
             <option value="name">Name</option>
-          </select>
+          </Select>
         </div>
       </div>
+      {isPending && (
+        <p className="mt-3 text-xs text-muted-foreground" role="status">
+          Updating results…
+        </p>
+      )}
     </form>
   );
 }

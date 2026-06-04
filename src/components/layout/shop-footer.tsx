@@ -18,30 +18,33 @@ export async function ShopFooter() {
     .replace("{brand}", brand.name);
 
   return (
-    <footer className="border-t border-border bg-card">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+    <footer className="mt-auto border-t border-border bg-card">
+      <div className="page-container py-12 lg:py-14">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2">
-            <p className="font-semibold text-primary">{brand.name}</p>
-            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+            <p className="text-lg font-semibold text-foreground">{brand.name}</p>
+            <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
               {footer.tagline}
             </p>
-            <p className="mt-4 text-sm text-muted-foreground">
-              {contact.email}
-              <br />
-              {contact.phone}
-              <br />
-              {contact.address}
-            </p>
+            <address className="mt-5 space-y-1 text-sm not-italic text-muted-foreground">
+              <a
+                href={`mailto:${contact.email}`}
+                className="block transition-colors hover:text-primary"
+              >
+                {contact.email}
+              </a>
+              <span className="block">{contact.phone}</span>
+              <span className="block">{contact.address}</span>
+            </address>
             {socialLinks.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-3">
+              <div className="mt-5 flex flex-wrap gap-3">
                 {socialLinks.map((link) => (
                   <a
                     key={link.label}
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-medium text-accent hover:underline"
+                    className="text-sm font-medium text-accent underline-offset-4 transition-colors hover:text-accent/90 hover:underline"
                   >
                     {link.label}
                   </a>
@@ -53,12 +56,12 @@ export async function ShopFooter() {
           {footer.columns.map((col) => (
             <div key={col.title}>
               <p className="text-sm font-semibold text-foreground">{col.title}</p>
-              <ul className="mt-3 space-y-2">
+              <ul className="mt-4 space-y-2.5">
                 {col.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground transition hover:text-primary"
+                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {link.label}
                     </Link>
@@ -69,7 +72,7 @@ export async function ShopFooter() {
           ))}
         </div>
 
-        <p className="mt-10 border-t border-border pt-6 text-center text-sm text-muted-foreground">
+        <p className="mt-10 border-t border-border pt-8 text-center text-sm text-muted-foreground">
           {copyright}
         </p>
       </div>

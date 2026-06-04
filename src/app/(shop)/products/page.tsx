@@ -55,16 +55,16 @@ export default async function ProductsPage({
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight text-primary">
-        All products
-      </h1>
-      <p className="mt-2 text-muted-foreground">
-        {result.total} product{result.total !== 1 ? "s" : ""} found
-      </p>
+    <div className="page-container py-10 sm:py-12">
+      <header className="page-header">
+        <h1 className="page-title">All products</h1>
+        <p className="page-description">
+          {result.total} product{result.total !== 1 ? "s" : ""} found
+        </p>
+      </header>
 
       <div className="mt-8">
-        <Suspense fallback={<div className="h-32 animate-pulse rounded-2xl bg-muted" />}>
+        <Suspense fallback={<div className="skeleton h-36 w-full" />}>
           <CatalogToolbar
             categories={categories.map((c) => ({
               slug: c.slug,
@@ -76,17 +76,28 @@ export default async function ProductsPage({
       </div>
 
       <div className="mt-8">
-        <ProductGrid products={result.items} />
+        {result.items.length === 0 ? (
+          <div className="empty-state">
+            <p className="font-medium text-foreground">No products found</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Try adjusting your search or filters.
+            </p>
+          </div>
+        ) : (
+          <ProductGrid products={result.items} />
+        )}
       </div>
 
-      <div className="mt-10">
-        <Pagination
-          basePath="/products"
-          page={result.page}
-          totalPages={result.totalPages}
-          searchParams={filterParams}
-        />
-      </div>
+      {result.totalPages > 1 && (
+        <div className="mt-10">
+          <Pagination
+            basePath="/products"
+            page={result.page}
+            totalPages={result.totalPages}
+            searchParams={filterParams}
+          />
+        </div>
+      )}
     </div>
   );
 }

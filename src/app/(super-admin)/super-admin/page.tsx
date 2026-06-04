@@ -54,20 +54,20 @@ export default async function SuperAdminOverviewPage() {
           <CardHeader>
             <CardTitle className="text-base">Quick links</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <Link href={ROUTES.superAdminUsers} className="block text-accent hover:underline">
+          <CardContent className="space-y-2.5 text-sm">
+            <Link href={ROUTES.superAdminUsers} className="section-link block">
               User management →
             </Link>
-            <Link href={ROUTES.superAdminSettings} className="block text-accent hover:underline">
+            <Link href={ROUTES.superAdminSettings} className="section-link block">
               Site settings & homepage →
             </Link>
-            <Link href={ROUTES.superAdminTheme} className="block text-accent hover:underline">
+            <Link href={ROUTES.superAdminTheme} className="section-link block">
               Theme colors →
             </Link>
-            <Link href={ROUTES.superAdminBranding} className="block text-accent hover:underline">
+            <Link href={ROUTES.superAdminBranding} className="section-link block">
               Logo & favicon →
             </Link>
-            <Link href={ROUTES.superAdminAnalytics} className="block text-accent hover:underline">
+            <Link href={ROUTES.superAdminAnalytics} className="section-link block">
               Full analytics →
             </Link>
           </CardContent>

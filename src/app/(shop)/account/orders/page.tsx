@@ -17,43 +17,47 @@ export default async function AccountOrdersPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold text-primary">My orders</h1>
-      <p className="mt-2 text-muted-foreground">
-        Track your Cash on Delivery orders.
-      </p>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-primary">My orders</h1>
+        <p className="mt-2 text-base text-muted-foreground">
+          Track your Cash on Delivery orders.
+        </p>
+      </div>
 
       {orders.length === 0 ? (
-        <p className="mt-10 rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">
-          You have not placed any orders yet.{" "}
-          <Link href={ROUTES.products} className="text-primary hover:underline">
-            Start shopping
-          </Link>
-        </p>
+        <div className="mt-10 rounded-xl border-2 border-border bg-card/50 p-10 text-center shadow-sm">
+          <p className="text-muted-foreground">
+            You have not placed any orders yet.{" "}
+            <Link href={ROUTES.products} className="font-medium text-primary hover:underline">
+              Start shopping
+            </Link>
+          </p>
+        </div>
       ) : (
         <ul className="mt-8 space-y-4">
           {orders.map((order) => (
             <li key={order.id}>
               <Link
                 href={`${ROUTES.accountOrders}/${order.id}`}
-                className="block rounded-2xl border border-border bg-card p-6 transition hover:border-primary/30 hover:shadow-sm"
+                className="block rounded-xl border-2 border-border bg-card p-6 shadow-sm transition duration-200 hover:border-primary/50 hover:shadow-md hover:bg-card/80"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <p className="font-mono text-sm font-medium text-foreground">
+                  <div className="flex-1">
+                    <p className="font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                       {order.orderNumber}
                     </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-2 text-sm text-muted-foreground">
                       {new Date(order.createdAt).toLocaleDateString(undefined, {
                         dateStyle: "medium",
                       })}
                       {" · "}
-                      {order._count.items} item
+                      <span className="font-medium">{order._count.items}</span> item
                       {order._count.items === 1 ? "" : "s"}
                     </p>
                   </div>
                   <div className="text-right">
                     <OrderStatusBadge status={order.status} />
-                    <p className="mt-2 font-semibold text-primary">
+                    <p className="mt-2 text-lg font-bold text-primary">
                       {formatPrice(Number(order.total))}
                     </p>
                   </div>

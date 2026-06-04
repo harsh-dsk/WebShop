@@ -4,11 +4,10 @@
 
 @layer base {
   :root {
-    /* Cream background, beige cards, dark green primary, orange accent */
     --background: 40 33% 97%;
     --foreground: 155 30% 12%;
 
-    --card: 35 24% 92%;
+    --card: 0 0% 100%;
     --card-foreground: 155 30% 12%;
 
     --primary: 158 43% 19%;
@@ -17,19 +16,189 @@
     --accent: 22 95% 46%;
     --accent-foreground: 40 33% 97%;
 
-    --muted: 35 18% 88%;
-    --muted-foreground: 155 12% 40%;
+    --muted: 35 18% 92%;
+    --muted-foreground: 155 12% 42%;
 
-    --border: 35 20% 85%;
+    --border: 35 16% 88%;
+    --ring: 158 43% 19%;
 
-    --radius: 0.875rem;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 45% 32%;
+    --success-foreground: 0 0% 100%;
+
+    --radius: 0.75rem;
+    --shadow-color: 155 30% 12%;
   }
 
   * {
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-tight text-foreground;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring/25 ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  .page-container {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+
+  .page-container-narrow {
+    @apply mx-auto w-full max-w-3xl px-4 sm:px-6;
+  }
+
+  .page-container-wide {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6;
+  }
+
+  .page-header {
+    @apply space-y-2;
+  }
+
+  .page-title {
+    @apply text-3xl font-bold tracking-tight text-foreground sm:text-4xl;
+  }
+
+  .page-description {
+    @apply max-w-2xl text-base text-muted-foreground;
+  }
+
+  .section-title {
+    @apply text-2xl font-bold tracking-tight text-foreground;
+  }
+
+  .section-link {
+    @apply text-sm font-medium text-accent underline-offset-4 transition-colors hover:text-accent/90 hover:underline;
+  }
+
+  .breadcrumb {
+    @apply flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground;
+  }
+
+  .breadcrumb a {
+    @apply transition-colors hover:text-primary;
+  }
+
+  .surface-card {
+    @apply rounded-xl border border-border bg-card text-card-foreground shadow-card;
+  }
+
+  .surface-elevated {
+    @apply rounded-xl border border-border bg-card shadow-elevated;
+  }
+
+  .form-alert-error {
+    @apply rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800;
+  }
+
+  .form-alert-success {
+    @apply rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800;
+  }
+
+  .data-table-wrap {
+    @apply overflow-hidden rounded-xl border border-border bg-card shadow-card;
+  }
+
+  .data-table-scroll {
+    @apply overflow-x-auto;
+  }
+
+  .data-table {
+    @apply w-full min-w-[640px] text-left text-sm;
+  }
+
+  .data-table thead tr {
+    @apply border-b border-border bg-muted/50;
+  }
+
+  .data-table th {
+    @apply px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+
+  .data-table tbody tr {
+    @apply border-b border-border transition-colors last:border-0 hover:bg-muted/30;
+  }
+
+  .data-table td {
+    @apply px-4 py-3.5 align-middle;
+  }
+
+  .filter-pill {
+    @apply inline-flex items-center rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:border-primary/30 hover:bg-muted hover:text-foreground;
+  }
+
+  .filter-pill-active {
+    @apply border-primary bg-primary text-primary-foreground shadow-sm hover:bg-primary hover:text-primary-foreground;
+  }
+
+  .nav-link-sidebar {
+    @apply flex items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200;
+  }
+
+  .nav-link-sidebar-active {
+    @apply bg-primary text-primary-foreground shadow-sm;
+  }
+
+  .nav-link-sidebar-inactive {
+    @apply text-muted-foreground hover:bg-muted hover:text-foreground;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-lg bg-muted;
+  }
+
+  .empty-state {
+    @apply flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/50 px-6 py-14 text-center;
+  }
+
+  .checkout-section {
+    @apply surface-card overflow-hidden;
+  }
+
+  .checkout-section-header {
+    @apply border-b border-border bg-muted/30 px-6 py-5;
+  }
+
+  .checkout-section-body {
+    @apply p-6;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }

@@ -25,11 +25,14 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-full shrink-0 lg:w-56">
-      <p className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+    <aside className="w-full shrink-0 lg:w-60">
+      <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         Store management
       </p>
-      <nav className="flex flex-row gap-2 overflow-x-auto lg:flex-col lg:gap-1">
+      <nav
+        className="flex flex-row gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-0.5 lg:overflow-visible"
+        aria-label="Admin navigation"
+      >
         {links.map(({ href, label, icon: Icon }) => {
           const active =
             href === ROUTES.admin
@@ -41,13 +44,11 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-medium transition",
-                active
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                "nav-link-sidebar",
+                active ? "nav-link-sidebar-active" : "nav-link-sidebar-inactive",
               )}
             >
-              <Icon className="h-4 w-4" aria-hidden />
+              <Icon className="h-4 w-4 shrink-0" aria-hidden />
               {label}
             </Link>
           );
@@ -56,12 +57,12 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
       {role === "SUPER_ADMIN" && (
         <Link
           href={ROUTES.superAdmin}
-          className="mt-4 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-accent hover:bg-muted"
+          className="nav-link-sidebar nav-link-sidebar-inactive mt-4 border border-dashed border-border"
         >
           Super Admin CMS →
         </Link>
       )}
-      <p className="mt-8 hidden text-xs text-muted-foreground lg:block">
+      <p className="mt-8 hidden px-1 text-xs leading-relaxed text-muted-foreground lg:block">
         {siteConfig.brand.name} — admin panel
       </p>
     </aside>

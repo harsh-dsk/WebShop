@@ -46,17 +46,15 @@ export function InventoryTable({ products }: InventoryTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Stock filters">
         {(["all", "low", "out"] as const).map((f) => (
           <button
             key={f}
             type="button"
             onClick={() => setFilter(f)}
             className={cn(
-              "rounded-xl px-4 py-2 text-sm font-medium transition",
-              filter === f
-                ? "bg-primary text-primary-foreground"
-                : "bg-card border border-border text-muted-foreground hover:bg-muted",
+              "filter-pill",
+              filter === f && "filter-pill-active",
             )}
           >
             {f === "all" ? "All" : f === "low" ? "Low stock" : "Out of stock"}
@@ -64,16 +62,16 @@ export function InventoryTable({ products }: InventoryTableProps) {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-sm">
+      <div className="data-table-wrap">
+        <div className="data-table-scroll">
+          <table className="data-table min-w-[720px]">
             <thead>
-              <tr className="border-b border-border bg-muted/40">
-                <th className="px-4 py-3 font-medium">Product</th>
-                <th className="px-4 py-3 font-medium">SKU</th>
-                <th className="px-4 py-3 font-medium">Price</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Stock</th>
+              <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Stock</th>
               </tr>
             </thead>
             <tbody>
