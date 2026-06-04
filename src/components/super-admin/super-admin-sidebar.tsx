@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   BarChart3,
   LayoutDashboard,
   Palette,
@@ -21,6 +22,7 @@ const links = [
   { href: ROUTES.superAdminBranding, label: "Branding", icon: Sparkles },
   { href: ROUTES.superAdminTheme, label: "Theme", icon: Palette },
   { href: ROUTES.superAdminAnalytics, label: "Analytics", icon: BarChart3 },
+  { href: ROUTES.superAdminActivity, label: "Activity", icon: Activity },
 ];
 
 export function SuperAdminSidebar() {

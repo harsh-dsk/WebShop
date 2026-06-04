@@ -70,6 +70,9 @@ export default async function SuperAdminOverviewPage() {
             <Link href={ROUTES.superAdminAnalytics} className="section-link block">
               Full analytics →
             </Link>
+            <Link href={ROUTES.superAdminActivity} className="section-link block">
+              Activity log →
+            </Link>
           </CardContent>
         </Card>
         <Card className="lg:col-span-2">

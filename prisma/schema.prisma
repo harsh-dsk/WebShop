@@ -322,3 +322,22 @@ model UserAddress {
   @@index([userId, isDefault])
   @@map("user_addresses")
 }
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String
+  userName   String
+  userRole   Role
+  action     String
+  entityType String
+  entityId   String?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([userRole])
+  @@map("activity_logs")
+}

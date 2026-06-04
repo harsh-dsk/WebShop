@@ -89,13 +89,24 @@ export default async function ProfilePage() {
           <Link href={ROUTES.accountOrders}>
             <Button variant="outline">My orders</Button>
           </Link>
-          <Link href={ROUTES.accountAddresses}>
-            <Button variant="outline">Address book</Button>
-          </Link>
           <Link href={ROUTES.cart}>
             <Button variant="outline">View cart</Button>
           </Link>
         </div>
+
+        <Link href={ROUTES.accountAddresses} className="mt-8 block">
+          <div className="rounded-2xl border border-border bg-muted/50 p-6 transition-all hover:bg-muted hover:shadow-md">
+            <h3 className="text-lg font-semibold text-foreground">Saved addresses</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Manage your address book for faster checkout and order delivery.
+            </p>
+            <div className="mt-4">
+              <Button variant="outline" size="sm">
+                View address book
+              </Button>
+            </div>
+          </div>
+        </Link>
 
         <div className="mt-8">
           <h3 className="text-lg font-semibold text-foreground">Quick profile address</h3>

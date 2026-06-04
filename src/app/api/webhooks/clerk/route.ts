@@ -4,10 +4,16 @@ import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 
 import {
+  ActivityAction,
+  ActivityEntityType,
+} from "@/lib/activity-log/actions";
+import {
   deleteUserByClerkId,
   upsertUserFromClerkData,
   type ClerkUserData,
 } from "@/lib/clerk-sync";
+import { db } from "@/lib/db";
+import { logActivityForActor } from "@/lib/services/activity-log.service";
 
 type ClerkWebhookUser = {
   id: string;
@@ -76,7 +82,21 @@ export async function POST(request: Request) {
       case "user.created":
       case "user.updated": {
         const data = event.data as unknown as ClerkWebhookUser;
-        await upsertUserFromClerkData(webhookUserToData(data));
+        const clerkData = webhookUserToData(data);
+        const existing =
+          event.type === "user.created"
+            ? await db.user.findUnique({ where: { clerkId: clerkData.id } })
+            : null;
+        const user = await upsertUserFromClerkData(clerkData);
+
+        if (event.type === "user.created" && !existing) {
+          await logActivityForActor(user, {
+            action: ActivityAction.USER_REGISTERED,
+            entityType: ActivityEntityType.USER,
+            entityId: user.id,
+            details: { email: user.email },
+          });
+        }
         break;
       }
       case "user.deleted": {

@@ -4,9 +4,14 @@ import { OrderStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import {
+  ActivityAction,
+  ActivityEntityType,
+} from "@/lib/activity-log/actions";
 import { requireStoreStaff, requireUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 import { db } from "@/lib/db";
+import { logActivityForActor } from "@/lib/services/activity-log.service";
 import { restoreProductStock } from "@/lib/services/inventory.service";
 import {
   queueOrderPlacedEmails,
@@ -47,7 +52,18 @@ export async function placeOrder(
 
   queueOrderPlacedEmails(order.id);
 
+  await logActivityForActor(user, {
+    action: ActivityAction.ORDER_PLACED,
+    entityType: ActivityEntityType.ORDER,
+    entityId: order.id,
+    details: {
+      orderNumber: order.orderNumber,
+      total: Number(order.total),
+    },
+  });
+
   revalidatePath(ROUTES.cart);
+  revalidatePath(ROUTES.superAdminActivity);
   revalidatePath(ROUTES.checkout);
   revalidatePath(ROUTES.accountAddresses);
   revalidatePath(ROUTES.accountOrders);
@@ -61,7 +77,7 @@ export async function updateOrderStatus(
   orderId: string,
   status: OrderStatus,
 ): Promise<ActionState> {
-  await requireStoreStaff();
+  const actor = await requireStoreStaff();
 
   const validStatuses = Object.values(OrderStatus);
   if (!validStatuses.includes(status)) {
@@ -70,7 +86,7 @@ export async function updateOrderStatus(
 
   const order = await db.order.findUnique({
     where: { id: orderId },
-    select: { id: true, status: true },
+    select: { id: true, status: true, orderNumber: true },
   });
 
   if (!order) {
@@ -107,6 +123,22 @@ export async function updateOrderStatus(
   revalidatePath(`${ROUTES.accountOrders}/${orderId}`);
 
   queueOrderStatusEmail(orderId, status);
+
+  const isCancellation = status === OrderStatus.CANCELLED;
+  await logActivityForActor(actor, {
+    action: isCancellation
+      ? ActivityAction.ORDER_CANCELLED
+      : ActivityAction.ORDER_STATUS_CHANGED,
+    entityType: ActivityEntityType.ORDER,
+    entityId: orderId,
+    details: {
+      orderNumber: order.orderNumber,
+      previousStatus,
+      newStatus: status,
+    },
+  });
+
+  revalidatePath(ROUTES.superAdminActivity);
 
   return { success: true };
 }

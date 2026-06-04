@@ -23,6 +23,7 @@ export const ROUTES = {
   superAdminTheme: "/super-admin/theme",
   superAdminBranding: "/super-admin/branding",
   superAdminAnalytics: "/super-admin/analytics",
+  superAdminActivity: "/super-admin/activity",
   accountBlocked: "/account/blocked",
 } as const;
 

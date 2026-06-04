@@ -3,8 +3,13 @@
 import { revalidatePath } from "next/cache";
 
 import type { ActionState } from "@/actions/orders";
+import {
+  ActivityAction,
+  ActivityEntityType,
+} from "@/lib/activity-log/actions";
 import { requireSuperAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
+import { logActivityForActor } from "@/lib/services/activity-log.service";
 import { updateSiteSettings } from "@/lib/services/site-settings.service";
 import {
   brandingSchema,
@@ -25,7 +30,7 @@ export async function updateStoreInfo(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireSuperAdmin();
+  const actor = await requireSuperAdmin();
 
   const parsed = storeInfoSchema.safeParse({
     storeName: formData.get("storeName"),
@@ -47,6 +52,12 @@ export async function updateStoreInfo(
   }
 
   await updateSiteSettings(parsed.data);
+  await logActivityForActor(actor, {
+    action: ActivityAction.SETTINGS_UPDATED,
+    entityType: ActivityEntityType.SITE_SETTINGS,
+    details: { section: "store_info" },
+  });
+  revalidatePath(ROUTES.superAdminActivity);
   revalidateSitePaths();
   return { success: true };
 }
@@ -55,7 +66,7 @@ export async function updateBranding(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireSuperAdmin();
+  const actor = await requireSuperAdmin();
 
   const parsed = brandingSchema.safeParse({
     logoUrl: formData.get("logoUrl"),
@@ -68,6 +79,12 @@ export async function updateBranding(
   }
 
   await updateSiteSettings(parsed.data);
+  await logActivityForActor(actor, {
+    action: ActivityAction.BRANDING_UPDATED,
+    entityType: ActivityEntityType.SITE_SETTINGS,
+    details: { section: "branding" },
+  });
+  revalidatePath(ROUTES.superAdminActivity);
   revalidateSitePaths();
   return { success: true };
 }
@@ -76,7 +93,7 @@ export async function updateTheme(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireSuperAdmin();
+  const actor = await requireSuperAdmin();
 
   const parsed = themeSchema.safeParse({
     primaryColor: formData.get("primaryColor"),
@@ -92,6 +109,12 @@ export async function updateTheme(
   }
 
   await updateSiteSettings(parsed.data);
+  await logActivityForActor(actor, {
+    action: ActivityAction.THEME_UPDATED,
+    entityType: ActivityEntityType.SITE_SETTINGS,
+    details: { section: "theme" },
+  });
+  revalidatePath(ROUTES.superAdminActivity);
   revalidateSitePaths();
   return { success: true };
 }
@@ -100,7 +123,7 @@ export async function updateHomepage(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireSuperAdmin();
+  const actor = await requireSuperAdmin();
 
   const parsed = homepageSchema.safeParse({
     heroEyebrow: formData.get("heroEyebrow") || null,
@@ -122,6 +145,12 @@ export async function updateHomepage(
   }
 
   await updateSiteSettings(parsed.data);
+  await logActivityForActor(actor, {
+    action: ActivityAction.SETTINGS_UPDATED,
+    entityType: ActivityEntityType.SITE_SETTINGS,
+    details: { section: "homepage" },
+  });
+  revalidatePath(ROUTES.superAdminActivity);
   revalidateSitePaths();
   return { success: true };
 }
