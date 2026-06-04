@@ -1,60 +1,48 @@
 "use client";
 
-import { useActionState, useState, useEffect } from "react";
-import { MapPin, Package, Truck } from "lucide-react";
+import { useActionState, useCallback, useState } from "react";
+import { Package, Truck } from "lucide-react";
 
 import { placeOrder, type ActionState } from "@/actions/orders";
+import {
+  AddressSelector,
+  type CheckoutShippingFields,
+} from "@/components/addresses/address-selector";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { formatPrice } from "@/lib/format";
+import type { SavedAddress } from "@/types/address";
 
 const initialState: ActionState = {};
 
 type CheckoutFormProps = {
   subtotal: number;
-  defaults?: {
-    shippingName?: string;
-    shippingEmail?: string;
-    shippingPhone?: string;
-    shippingAddress?: string;
-    shippingCity?: string;
-    shippingState?: string;
-    shippingPostalCode?: string;
-  };
-  previousOrder?: {
-    id: string;
-    shippingName?: string | null;
-    shippingEmail?: string | null;
-    shippingPhone?: string | null;
-    shippingAddress?: string | null;
-    shippingCity?: string | null;
-    shippingState?: string | null;
-    shippingPostalCode?: string | null;
-  };
+  savedAddresses: SavedAddress[];
+  defaults: CheckoutShippingFields & { shippingEmail: string };
 };
 
-export function CheckoutForm({ subtotal, defaults, previousOrder }: CheckoutFormProps) {
+export function CheckoutForm({ subtotal, savedAddresses, defaults }: CheckoutFormProps) {
   const [state, formAction, pending] = useActionState(placeOrder, initialState);
 
-  const [shippingName, setShippingName] = useState(defaults?.shippingName ?? "");
-  const [shippingEmail, setShippingEmail] = useState(defaults?.shippingEmail ?? "");
-  const [shippingPhone, setShippingPhone] = useState(defaults?.shippingPhone ?? "");
-  const [shippingAddress, setShippingAddress] = useState(defaults?.shippingAddress ?? "");
-  const [shippingCity, setShippingCity] = useState(defaults?.shippingCity ?? "");
-  const [shippingState, setShippingState] = useState(defaults?.shippingState ?? "");
-  const [shippingPostalCode, setShippingPostalCode] = useState(defaults?.shippingPostalCode ?? "");
+  const [shippingName, setShippingName] = useState(defaults.shippingName);
+  const [shippingEmail, setShippingEmail] = useState(defaults.shippingEmail);
+  const [shippingPhone, setShippingPhone] = useState(defaults.shippingPhone);
+  const [shippingAddress, setShippingAddress] = useState(defaults.shippingAddress);
+  const [shippingCity, setShippingCity] = useState(defaults.shippingCity);
+  const [shippingState, setShippingState] = useState(defaults.shippingState);
+  const [shippingPostalCode, setShippingPostalCode] = useState(defaults.shippingPostalCode);
 
-  useEffect(() => {
-    setShippingName(defaults?.shippingName ?? "");
-    setShippingEmail(defaults?.shippingEmail ?? "");
-    setShippingPhone(defaults?.shippingPhone ?? "");
-    setShippingAddress(defaults?.shippingAddress ?? "");
-    setShippingCity(defaults?.shippingCity ?? "");
-    setShippingState(defaults?.shippingState ?? "");
-    setShippingPostalCode(defaults?.shippingPostalCode ?? "");
-  }, [defaults]);
+  const applyShipping = useCallback((fields: CheckoutShippingFields & { shippingEmail: string }) => {
+    setShippingName(fields.shippingName);
+    setShippingEmail(fields.shippingEmail);
+    setShippingPhone(fields.shippingPhone);
+    setShippingAddress(fields.shippingAddress);
+    setShippingCity(fields.shippingCity);
+    setShippingState(fields.shippingState);
+    setShippingPostalCode(fields.shippingPostalCode);
+  }, []);
 
   return (
     <form action={formAction} className="space-y-6 lg:space-y-8">
@@ -74,24 +62,20 @@ export function CheckoutForm({ subtotal, defaults, previousOrder }: CheckoutForm
         </div>
 
         <div className="checkout-section-body space-y-6">
-          {previousOrder ? (
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
-              onClick={() => {
-                setShippingName(previousOrder.shippingName ?? "");
-                setShippingEmail(previousOrder.shippingEmail ?? "");
-                setShippingPhone(previousOrder.shippingPhone ?? "");
-                setShippingAddress(previousOrder.shippingAddress ?? "");
-                setShippingCity(previousOrder.shippingCity ?? "");
-                setShippingState(previousOrder.shippingState ?? "");
-                setShippingPostalCode(previousOrder.shippingPostalCode ?? "");
-              }}
-            >
-              <MapPin className="h-4 w-4" aria-hidden />
-              Use previous order address
-            </button>
-          ) : null}
+          <AddressSelector
+            addresses={savedAddresses}
+            defaultEmail={defaults.shippingEmail}
+            initialFields={{
+              shippingName,
+              shippingPhone,
+              shippingAddress,
+              shippingCity,
+              shippingState,
+              shippingPostalCode,
+              shippingEmail,
+            }}
+            onSelect={applyShipping}
+          />
 
           <div className="grid gap-5 sm:grid-cols-2">
             <FormField label="Full name" htmlFor="shippingName" required className="sm:col-span-2">

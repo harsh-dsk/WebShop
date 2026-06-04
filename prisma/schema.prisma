@@ -27,6 +27,7 @@ model User {
   cart       Cart?
   orders     Order[]
   wishlist   Wishlist?
+  addresses  UserAddress[]
 
   @@index([role])
   @@index([isBlocked])
@@ -292,4 +293,32 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+}
+
+enum AddressLabel {
+  HOME
+  OFFICE
+  HOSTEL
+  OTHER
+}
+
+model UserAddress {
+  id          String       @id @default(cuid())
+  userId      String
+  label       AddressLabel @default(HOME)
+  fullName    String
+  phone       String
+  addressLine String
+  city        String
+  state       String
+  postalCode  String
+  country     String       @default("IN")
+  isDefault   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isDefault])
+  @@map("user_addresses")
 }

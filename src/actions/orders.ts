@@ -49,6 +49,7 @@ export async function placeOrder(
 
   revalidatePath(ROUTES.cart);
   revalidatePath(ROUTES.checkout);
+  revalidatePath(ROUTES.accountAddresses);
   revalidatePath(ROUTES.accountOrders);
   revalidatePath(ROUTES.adminOrders);
   revalidatePath(ROUTES.home, "layout");

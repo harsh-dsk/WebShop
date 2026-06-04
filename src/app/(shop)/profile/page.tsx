@@ -89,14 +89,24 @@ export default async function ProfilePage() {
           <Link href={ROUTES.accountOrders}>
             <Button variant="outline">My orders</Button>
           </Link>
+          <Link href={ROUTES.accountAddresses}>
+            <Button variant="outline">Address book</Button>
+          </Link>
           <Link href={ROUTES.cart}>
             <Button variant="outline">View cart</Button>
           </Link>
         </div>
 
         <div className="mt-8">
-          <h3 className="text-lg font-semibold text-foreground">Shipping address</h3>
-          <p className="mt-1 text-sm text-muted-foreground">Save a default shipping address for checkout.</p>
+          <h3 className="text-lg font-semibold text-foreground">Quick profile address</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Legacy single address on your profile. For multiple addresses and checkout,
+            use your{" "}
+            <Link href={ROUTES.accountAddresses} className="font-medium text-accent hover:underline">
+              address book
+            </Link>
+            .
+          </p>
           <AddressForm
             initial={{
               fullName: user.fullName ?? `${user.firstName ?? ""} ${user.lastName ?? ""}`,
