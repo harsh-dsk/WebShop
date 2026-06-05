@@ -54,7 +54,7 @@ export function ExpectedDeliveryForm({ orderId, defaultValue }: Props) {
           required
         />
       </div>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending}>
         {pending ? "Saving…" : "Save date"}
       </Button>
     </form>

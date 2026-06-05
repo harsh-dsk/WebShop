@@ -106,7 +106,7 @@ export function StoreInfoForm({ settings }: { settings: SiteSettings }) {
           <Input id="twitterUrl" name="twitterUrl" defaultValue={settings.twitterUrl ?? ""} />
         </div>
       </div>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending}>
         {pending ? "Saving…" : "Save store settings"}
       </Button>
     </form>
@@ -176,7 +176,7 @@ export function HomepageForm({ settings }: { settings: SiteSettings }) {
         <CheckboxField name="showBestSellers" label="Best sellers" defaultChecked={settings.showBestSellers} />
         <CheckboxField name="showNewsletter" label="Newsletter signup" defaultChecked={settings.showNewsletter} />
       </div>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending}>
         {pending ? "Saving…" : "Save homepage"}
       </Button>
     </form>
@@ -209,7 +209,7 @@ export function BrandingForm({ settings }: { settings: SiteSettings }) {
         <Input id="logoText" name="logoText" maxLength={8} defaultValue={settings.logoText} required />
       </div>
       <MediaUploadField label="Favicon" name="faviconUrl" value={settings.faviconUrl} folder="branding" />
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending}>
         {pending ? "Saving…" : "Save branding"}
       </Button>
     </form>
@@ -265,7 +265,7 @@ export function ThemeForm({ settings }: { settings: SiteSettings }) {
           </div>
         ))}
       </div>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending}>
         {pending ? "Saving…" : "Save theme"}
       </Button>
     </form>

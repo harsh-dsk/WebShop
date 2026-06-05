@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { ProductGridSkeleton } from "@/components/ui/skeleton";
 import { ROUTES } from "@/lib/constants/routes";
 import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,7 @@ type Props = {
 
 export function RecentlyViewedProducts({ className, title = "Recently viewed", excludeSlug }: Props) {
   const [products, setProducts] = useState<RecentlyViewedProduct[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const slugs = useMemo(() => {
     const list = getRecentlyViewed();
@@ -53,22 +55,33 @@ export function RecentlyViewedProducts({ className, title = "Recently viewed", e
 
   useEffect(() => {
     const list = slugs.slice(0, 8);
-    if (list.length === 0) return;
+    if (list.length === 0) {
+      setProducts([]);
+      setLoading(false);
+      return;
+    }
 
     const controller = new AbortController();
+    setLoading(true);
+
     (async () => {
-      const res = await fetch(`/api/recently-viewed?slugs=${encodeURIComponent(list.join(","))}`, {
-        signal: controller.signal,
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as { products: RecentlyViewedProduct[] };
-      setProducts(data.products ?? []);
+      try {
+        const res = await fetch(
+          `/api/recently-viewed?slugs=${encodeURIComponent(list.join(","))}`,
+          { signal: controller.signal },
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as { products: RecentlyViewedProduct[] };
+        setProducts(data.products ?? []);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
     })();
 
     return () => controller.abort();
   }, [slugs]);
 
-  if (products.length === 0) return null;
+  if (!loading && products.length === 0) return null;
 
   return (
     <section className={cn("mt-14", className)}>
@@ -78,6 +91,11 @@ export function RecentlyViewedProducts({ className, title = "Recently viewed", e
           Shop all
         </Link>
       </div>
+      {loading ? (
+        <div className="mt-6">
+          <ProductGridSkeleton count={4} />
+        </div>
+      ) : (
       <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
         {products.map((p) => {
           const stock = effectiveStock(p);
@@ -136,6 +154,7 @@ export function RecentlyViewedProducts({ className, title = "Recently viewed", e
           );
         })}
       </div>
+      )}
     </section>
   );
 }

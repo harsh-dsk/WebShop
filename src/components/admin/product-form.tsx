@@ -309,7 +309,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
 />
 
       <div className="flex gap-3 border-t border-border pt-6">
-        <Button type="submit" size="lg" disabled={pending}>
+        <Button type="submit" size="lg" loading={pending}>
           {pending ? "Saving…" : product ? "Save product" : "Create product"}
         </Button>
       </div>

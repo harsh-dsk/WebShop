@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { ShoppingCart } from "lucide-react";
+import { toast } from "sonner";
 
 import { addToCart } from "@/actions/cart";
 import { Button } from "@/components/ui/button";
@@ -20,34 +21,36 @@ export function AddToCartButton({
   disabled,
 }: AddToCartButtonProps) {
   const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(initialQuantity);
 
   const canAddMore = quantity < availableStock;
   const buttonLabel = pending
     ? "Adding…"
     : quantity > 0
-    ? `Add another (${quantity} in cart)`
-    : "Add to cart";
+      ? `Add another (${quantity} in cart)`
+      : "Add to cart";
 
   return (
-    <div className="space-y-2 w-full sm:w-auto">
+    <div className="w-full space-y-2 sm:w-auto">
       <Button
         type="button"
         variant="accent"
         size="lg"
         className="w-full sm:w-auto"
-        disabled={disabled || pending || !canAddMore}
+        loading={pending}
+        disabled={disabled || !canAddMore}
         onClick={() => {
-          setMessage(null);
+          const previousQuantity = quantity;
+          setQuantity((current) => Math.min(current + 1, availableStock));
+
           startTransition(async () => {
             const result = await addToCart(productId, 1);
             if (result.error) {
-              setMessage(result.error);
-            } else {
-              setQuantity((current) => Math.min(current + 1, availableStock));
-              setMessage("Added to cart");
+              setQuantity(previousQuantity);
+              toast.error(result.error);
+              return;
             }
+            toast.success("Added to cart");
           });
         }}
       >
@@ -59,16 +62,10 @@ export function AddToCartButton({
           {quantity} item{quantity === 1 ? "" : "s"} currently in your cart.
         </p>
       )}
-      {message && (
-        <p
-          className={`text-sm ${message === "Added to cart" ? "text-primary" : "text-red-600"}`}
-          role="status"
-        >
-          {message}
-        </p>
-      )}
       {!canAddMore && !disabled && (
-        <p className="text-sm text-red-600">You already have the maximum available quantity in your cart.</p>
+        <p className="text-sm text-red-600" role="status">
+          You already have the maximum available quantity in your cart.
+        </p>
       )}
     </div>
   );

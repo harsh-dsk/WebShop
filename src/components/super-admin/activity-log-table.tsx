@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { ScrollText } from "lucide-react";
 
 import type { ActivityLogRecord } from "@/types/activity-log";
+import { EmptyState } from "@/components/ui/empty-state";
 
 import { ActivityActionBadge, ActivityRoleBadge } from "@/components/super-admin/activity-log-badges";
 import {
@@ -52,9 +54,11 @@ export function ActivityLogTable({
 }: ActivityLogTableProps) {
   if (logs.length === 0) {
     return (
-      <div className="empty-state">
-        <p className="text-sm text-muted-foreground">No activity matches your filters.</p>
-      </div>
+      <EmptyState
+        icon={ScrollText}
+        title="No activity found"
+        description="Try adjusting your search or filter criteria to see audit events."
+      />
     );
   }
 

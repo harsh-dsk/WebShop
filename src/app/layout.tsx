@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { ThemeVariables } from "@/components/brand/theme-variables";
+import { AppToaster } from "@/components/providers/shop-toaster";
+import { RouteProgress } from "@/components/providers/route-progress";
 import { siteConfig } from "@/config/site";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import { getRuntimeSiteConfig } from "@/lib/services/site-settings.service";
@@ -46,6 +48,8 @@ export default async function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} min-h-screen font-sans antialiased`}
         >
+          <RouteProgress />
+          <AppToaster />
           {children}
         </body>
       </html>

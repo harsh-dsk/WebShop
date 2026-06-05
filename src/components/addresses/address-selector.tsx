@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { MapPin, Pencil, Plus } from "lucide-react";
 
+import { EmptyState } from "@/components/ui/empty-state";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatAddressLabel } from "@/lib/address-labels";
@@ -64,21 +66,22 @@ export function AddressSelector({
 
   if (addresses.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4">
-        <p className="text-sm text-muted-foreground">
-          No saved addresses yet. Enter your details below or add an address to your
-          book.
-        </p>
-        <Link
-          href={`${ROUTES.accountAddresses}/new?returnTo=${encodeURIComponent(ROUTES.checkout)}`}
-          className="mt-3 inline-block"
-        >
-          <Button type="button" variant="outline" size="sm" className="gap-1.5">
-            <Plus className="h-4 w-4" aria-hidden />
-            Add address
-          </Button>
-        </Link>
-      </div>
+      <EmptyState
+        icon={MapPin}
+        title="No saved addresses"
+        description="Enter your details below, or add an address to your book for faster checkout."
+        className="py-8"
+        action={
+          <Link
+            href={`${ROUTES.accountAddresses}/new?returnTo=${encodeURIComponent(ROUTES.checkout)}`}
+          >
+            <Button type="button" variant="outline" size="sm" className="gap-1.5">
+              <Plus className="h-4 w-4" aria-hidden />
+              Add address
+            </Button>
+          </Link>
+        }
+      />
     );
   }
 

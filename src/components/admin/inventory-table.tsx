@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Package } from "lucide-react";
+import { toast } from "sonner";
 
 import { updateProductStock, updateVariantStock } from "@/actions/products";
 import { Badge } from "@/components/ui/badge";
@@ -191,7 +192,8 @@ function ProductRow({
                 product.id,
                 parseInt(stock, 10) || 0,
               );
-              if (r.error) alert(r.error);
+              if (r.error) toast.error(r.error);
+              else toast.success("Stock updated");
             });
           }}
         />
@@ -242,7 +244,8 @@ function VariantRow({
                 variant.id,
                 parseInt(stock, 10) || 0,
               );
-              if (r.error) alert(r.error);
+              if (r.error) toast.error(r.error);
+              else toast.success("Stock updated");
             });
           }}
         />
@@ -271,8 +274,8 @@ function StockEditor({
         onChange={(e) => onChange(e.target.value)}
         className="h-9 w-20"
       />
-      <Button type="button" size="sm" variant="outline" disabled={pending} onClick={onSave}>
-        Save
+      <Button type="button" size="sm" variant="outline" loading={pending} onClick={onSave}>
+        {pending ? "Saving…" : "Save"}
       </Button>
     </div>
   );

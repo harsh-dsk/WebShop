@@ -208,7 +208,12 @@ export function CheckoutForm({ subtotal, savedAddresses, defaults }: CheckoutFor
         </p>
       )}
 
-      <Button type="submit" size="lg" className="w-full sm:max-w-md" disabled={pending}>
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full sm:max-w-md"
+        loading={pending}
+      >
         {pending ? "Placing order…" : "Place order"}
       </Button>
     </form>

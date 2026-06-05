@@ -1,9 +1,12 @@
 import { cn } from "@/lib/utils";
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 
+import { Spinner } from "@/components/ui/spinner";
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "accent" | "outline" | "ghost" | "destructive";
   size?: "sm" | "md" | "lg" | "icon";
+  loading?: boolean;
 }
 
 const variantClasses: Record<NonNullable<ButtonProps["variant"]>, string> = {
@@ -32,6 +35,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       variant = "primary",
       size = "md",
       type = "button",
+      loading = false,
+      disabled,
+      children,
       ...props
     },
     ref,
@@ -39,6 +45,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     <button
       ref={ref}
       type={type}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={cn(
         "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 ease-smooth focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         variantClasses[variant],
@@ -46,7 +54,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className,
       )}
       {...props}
-    />
+    >
+      {loading && <Spinner className="shrink-0" label="" />}
+      {children}
+    </button>
   ),
 );
 

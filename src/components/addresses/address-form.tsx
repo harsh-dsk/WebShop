@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { toast } from "sonner";
 
 import {
   createAddress,
@@ -28,6 +29,14 @@ export function AddressForm({ mode, address, returnTo }: AddressFormProps) {
     initialState,
   );
 
+  useEffect(() => {
+    if (state.success) {
+      toast.success(
+        mode === "create" ? "Address saved" : "Address updated",
+      );
+    }
+  }, [state.success, mode]);
+
   return (
     <form action={formAction} className="space-y-6">
       {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
@@ -41,7 +50,7 @@ export function AddressForm({ mode, address, returnTo }: AddressFormProps) {
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" loading={pending}>
           {pending ? "Saving…" : mode === "create" ? "Save address" : "Update address"}
         </Button>
       </div>

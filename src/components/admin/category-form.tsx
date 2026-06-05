@@ -127,7 +127,7 @@ export function CategoryForm({ category }: CategoryFormProps) {
         />
       </FormSection>
 
-      <Button type="submit" size="lg" disabled={pending}>
+      <Button type="submit" size="lg" loading={pending}>
         {pending ? "Saving…" : category ? "Update category" : "Create category"}
       </Button>
     </form>

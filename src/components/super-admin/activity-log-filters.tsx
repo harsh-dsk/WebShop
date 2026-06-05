@@ -2,6 +2,7 @@
 
 import { Role } from "@prisma/client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTransition } from "react";
 
 import {
   ACTIVITY_ACTION_OPTIONS,
@@ -25,6 +26,7 @@ const ENTITY_OPTIONS = [
 export function ActivityLogFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [pending, startTransition] = useTransition();
 
   return (
     <form
@@ -41,7 +43,9 @@ export function ActivityLogFilters() {
         if (action) params.set("action", action);
         if (role) params.set("role", role);
         if (entityType) params.set("entityType", entityType);
-        router.push(`${ROUTES.superAdminActivity}?${params.toString()}`);
+        startTransition(() => {
+          router.push(`${ROUTES.superAdminActivity}?${params.toString()}`);
+        });
       }}
     >
       <div className="min-w-[200px] flex-1 space-y-2">
@@ -87,7 +91,9 @@ export function ActivityLogFilters() {
           ))}
         </Select>
       </div>
-      <Button type="submit">Apply filters</Button>
+      <Button type="submit" loading={pending}>
+        {pending ? "Filtering…" : "Apply filters"}
+      </Button>
       {(searchParams.get("q") ||
         searchParams.get("action") ||
         searchParams.get("role") ||
@@ -95,7 +101,12 @@ export function ActivityLogFilters() {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push(ROUTES.superAdminActivity)}
+          disabled={pending}
+          onClick={() => {
+            startTransition(() => {
+              router.push(ROUTES.superAdminActivity);
+            });
+          }}
         >
           Clear
         </Button>

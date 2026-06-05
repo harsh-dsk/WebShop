@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Toaster } from "sonner";
 
+import { PageTransition } from "@/components/providers/page-transition";
 import { SuperAdminSidebar } from "@/components/super-admin/super-admin-sidebar";
 import { requireSuperAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
@@ -16,7 +16,6 @@ export default async function SuperAdminLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <Toaster position="top-center" richColors closeButton />
       <header className="sticky top-0 z-40 border-b border-border/80 bg-card/95 shadow-sm backdrop-blur-md">
         <div className="page-container-wide flex h-14 flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -49,7 +48,9 @@ export default async function SuperAdminLayout({
 
       <div className="page-container-wide flex flex-col gap-8 py-8 lg:flex-row lg:gap-10">
         <SuperAdminSidebar />
-        <div className="min-w-0 flex-1 animate-fade-in">{children}</div>
+        <div className="min-w-0 flex-1">
+          <PageTransition>{children}</PageTransition>
+        </div>
       </div>
     </div>
   );

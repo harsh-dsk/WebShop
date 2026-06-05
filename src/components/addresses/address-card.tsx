@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { MapPin, Pencil, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,38 +21,55 @@ type AddressCardProps = {
 export function AddressCard({ address }: AddressCardProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [pendingAction, setPendingAction] = useState<"default" | "delete" | null>(
+    null,
+  );
+  const [isDefault, setIsDefault] = useState(address.isDefault);
+  const [removed, setRemoved] = useState(false);
+
+  if (removed) return null;
 
   function handleSetDefault() {
+    setPendingAction("default");
+    setIsDefault(true);
+
     startTransition(async () => {
       const result = await setDefaultAddress(address.id);
       if (result.error) {
+        setIsDefault(address.isDefault);
         toast.error(result.error);
-        return;
+      } else {
+        toast.success("Default address updated");
+        router.refresh();
       }
-      toast.success("Default address updated");
-      router.refresh();
+      setPendingAction(null);
     });
   }
 
   function handleDelete() {
     if (!confirm("Delete this address? This cannot be undone.")) return;
 
+    setPendingAction("delete");
+    setRemoved(true);
+
     startTransition(async () => {
       const result = await deleteAddress(address.id);
       if (result.error) {
+        setRemoved(false);
         toast.error(result.error);
-        return;
+      } else {
+        toast.success("Address deleted");
+        router.refresh();
       }
-      toast.success("Address deleted");
-      router.refresh();
+      setPendingAction(null);
     });
   }
 
   return (
     <article
       className={cn(
-        "surface-card relative flex flex-col p-5 transition-all duration-200 sm:p-6",
-        address.isDefault && "ring-2 ring-primary/20",
+        "surface-card card-interactive relative flex flex-col p-5 sm:p-6",
+        isDefault && "ring-2 ring-primary/20",
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -64,7 +81,7 @@ export function AddressCard({ address }: AddressCardProps) {
             <h3 className="font-semibold text-foreground">
               {formatAddressLabel(address.label)}
             </h3>
-            {address.isDefault && (
+            {isDefault && (
               <Badge className="mt-1" variant="default">
                 Default
               </Badge>
@@ -84,17 +101,18 @@ export function AddressCard({ address }: AddressCardProps) {
       </address>
 
       <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-4">
-        {!address.isDefault && (
+        {!isDefault && (
           <Button
             type="button"
             variant="outline"
             size="sm"
+            loading={pending && pendingAction === "default"}
             disabled={pending}
             onClick={handleSetDefault}
             className="gap-1.5"
           >
             <Star className="h-3.5 w-3.5" aria-hidden />
-            Set default
+            {pending && pendingAction === "default" ? "Setting…" : "Set default"}
           </Button>
         )}
         <Link href={`${ROUTES.accountAddresses}/${address.id}/edit`}>
@@ -107,12 +125,13 @@ export function AddressCard({ address }: AddressCardProps) {
           type="button"
           variant="ghost"
           size="sm"
+          loading={pending && pendingAction === "delete"}
           disabled={pending}
           onClick={handleDelete}
           className="gap-1.5 text-destructive hover:bg-red-50 hover:text-destructive"
         >
           <Trash2 className="h-3.5 w-3.5" aria-hidden />
-          Delete
+          {pending && pendingAction === "delete" ? "Deleting…" : "Delete"}
         </Button>
       </div>
     </article>

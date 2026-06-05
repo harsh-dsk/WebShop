@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Package } from "lucide-react";
 
 import { OrderStatusBadge } from "@/components/shop/order-status-badge";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { requireUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 import { formatPrice } from "@/lib/format";
@@ -25,13 +28,17 @@ export default async function AccountOrdersPage() {
       </div>
 
       {orders.length === 0 ? (
-        <div className="mt-10 rounded-xl border-2 border-border bg-card/50 p-10 text-center shadow-sm">
-          <p className="text-muted-foreground">
-            You have not placed any orders yet.{" "}
-            <Link href={ROUTES.products} className="font-medium text-primary hover:underline">
-              Start shopping
-            </Link>
-          </p>
+        <div className="mt-10">
+          <EmptyState
+            icon={Package}
+            title="No orders yet"
+            description="When you place your first order, it will appear here with live status updates."
+            action={
+              <Link href={ROUTES.products}>
+                <Button>Start shopping</Button>
+              </Link>
+            }
+          />
         </div>
       ) : (
         <ul className="mt-8 space-y-4">
@@ -39,7 +46,7 @@ export default async function AccountOrdersPage() {
             <li key={order.id}>
               <Link
                 href={`${ROUTES.accountOrders}/${order.id}`}
-                className="block rounded-xl border-2 border-border bg-card p-6 shadow-sm transition duration-200 hover:border-primary/50 hover:shadow-md hover:bg-card/80"
+                className="card-interactive block rounded-xl border-2 border-border bg-card p-6 shadow-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex-1">

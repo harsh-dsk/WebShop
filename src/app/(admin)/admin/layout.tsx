@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AdminSidebar } from "@/components/layout/admin-sidebar";
+import { PageTransition } from "@/components/providers/page-transition";
 import { siteConfig } from "@/config/site";
 import { requireStoreStaff } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
@@ -40,7 +41,9 @@ export default async function AdminLayout({
 
       <div className="page-container-wide flex flex-col gap-8 py-8 lg:flex-row lg:gap-10">
         <AdminSidebar role={user.role} />
-        <div className="min-w-0 flex-1 animate-fade-in">{children}</div>
+        <div className="min-w-0 flex-1">
+          <PageTransition>{children}</PageTransition>
+        </div>
       </div>
     </div>
   );

@@ -61,12 +61,33 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(4px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "page-fade": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "route-progress": {
+          "0%": { transform: "translateX(-100%)" },
+          "50%": { transform: "translateX(200%)" },
+          "100%": { transform: "translateX(400%)" },
+        },
+        "modal-in": {
+          from: { opacity: "0", transform: "scale(0.96) translateY(4px)" },
+          to: { opacity: "1", transform: "scale(1) translateY(0)" },
+        },
+        "dropdown-in": {
+          from: { opacity: "0", transform: "translateY(-4px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
         shimmer: {
           "100%": { transform: "translateX(100%)" },
         },
       },
       animation: {
         "fade-in": "fade-in 0.35s ease-out forwards",
+        "page-fade": "page-fade 0.2s ease-out forwards",
+        "route-progress": "route-progress 1.2s ease-in-out infinite",
+        "modal-in": "modal-in 0.2s ease-out forwards",
+        "dropdown-in": "dropdown-in 0.15s ease-out forwards",
         shimmer: "shimmer 1.5s infinite",
       },
       transitionTimingFunction: {

@@ -3,6 +3,7 @@
 import { OrderStatus } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { toast } from "sonner";
 
 import { updateOrderStatus } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
@@ -38,8 +39,9 @@ export function OrderStatusForm({ orderId, currentStatus }: OrderStatusFormProps
         startTransition(async () => {
           const result = await updateOrderStatus(orderId, status);
           if (result.error) {
-            alert(result.error);
+            toast.error(result.error);
           } else {
+            toast.success("Order status updated");
             router.refresh();
           }
         });
@@ -61,7 +63,7 @@ export function OrderStatusForm({ orderId, currentStatus }: OrderStatusFormProps
           ))}
         </Select>
       </div>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending}>
         {pending ? "Saving…" : "Update status"}
       </Button>
     </form>

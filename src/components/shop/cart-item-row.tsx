@@ -3,13 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { removeFromCart, updateCartItemQuantity } from "@/actions/cart";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 import { ROUTES } from "@/lib/constants/routes";
+import { cn } from "@/lib/utils";
 
 type CartItemRowProps = {
   item: {
@@ -28,41 +30,55 @@ type CartItemRowProps = {
 export function CartItemRow({ item }: CartItemRowProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [quantity, setQuantity] = useState(item.quantity);
+  const [removed, setRemoved] = useState(false);
 
-  function refresh() {
-    router.refresh();
-  }
+  useEffect(() => {
+    setQuantity(item.quantity);
+  }, [item.quantity]);
+
+  if (removed) return null;
+
+  const subtotal = item.price * quantity;
 
   function handleQuantityChange(next: number) {
-    setStatus(null);
+    const previous = quantity;
+    setQuantity(next);
+
     startTransition(async () => {
       const result = await updateCartItemQuantity(item.id, next);
       if (result.error) {
-        setStatus({ type: "error", message: result.error });
+        setQuantity(previous);
+        toast.error(result.error);
         return;
       }
-
-      setStatus({ type: "success", message: "Quantity updated" });
-      refresh();
+      toast.success("Quantity updated");
+      router.refresh();
     });
   }
 
   function handleRemove() {
-    setStatus(null);
+    setRemoved(true);
+
     startTransition(async () => {
       const result = await removeFromCart(item.id);
       if (result.error) {
-        setStatus({ type: "error", message: result.error });
+        setRemoved(false);
+        toast.error(result.error);
         return;
       }
-
-      refresh();
+      toast.success("Item removed from cart");
+      router.refresh();
     });
   }
 
   return (
-    <li className="flex gap-4 py-6 transition-colors last:pb-0 sm:gap-5">
+    <li
+      className={cn(
+        "flex gap-4 py-6 transition-all duration-200 last:pb-0 sm:gap-5",
+        pending && "opacity-70",
+      )}
+    >
       <Link
         href={`${ROUTES.products}/${item.slug}`}
         className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-border bg-muted shadow-sm transition-shadow hover:shadow-md sm:h-28 sm:w-28"
@@ -100,20 +116,27 @@ export function CartItemRow({ item }: CartItemRowProps) {
               variant="ghost"
               size="sm"
               className="h-9 w-9 px-0"
-              disabled={pending || item.quantity <= 1}
-              onClick={() => handleQuantityChange(item.quantity - 1)}
+              disabled={pending || quantity <= 1}
+              aria-busy={pending}
+              onClick={() => handleQuantityChange(quantity - 1)}
               aria-label="Decrease quantity"
             >
               <Minus className="h-4 w-4" />
             </Button>
-            <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+            <span
+              className="w-8 text-center text-sm font-medium tabular-nums"
+              aria-live="polite"
+            >
+              {quantity}
+            </span>
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="h-9 w-9 px-0"
-              disabled={pending || item.quantity >= item.availableStock}
-              onClick={() => handleQuantityChange(item.quantity + 1)}
+              disabled={pending || quantity >= item.availableStock}
+              aria-busy={pending}
+              onClick={() => handleQuantityChange(quantity + 1)}
               aria-label="Increase quantity"
             >
               <Plus className="h-4 w-4" />
@@ -121,27 +144,22 @@ export function CartItemRow({ item }: CartItemRowProps) {
           </div>
 
           <div className="flex items-center gap-4">
-            <p className="font-semibold text-primary">{formatPrice(item.subtotal)}</p>
+            <p className="font-semibold text-primary tabular-nums">
+              {formatPrice(subtotal)}
+            </p>
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="text-muted-foreground hover:text-red-600"
               disabled={pending}
+              aria-busy={pending}
               onClick={handleRemove}
               aria-label="Remove item"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-          {status ? (
-            <p
-              className={`mt-3 text-sm ${status.type === "success" ? "text-primary" : "text-red-600"}`}
-              role="status"
-            >
-              {status.message}
-            </p>
-          ) : null}
         </div>
       </div>
     </li>

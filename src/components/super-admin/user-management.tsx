@@ -12,6 +12,7 @@ import {
 } from "@/actions/super-admin/users";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -42,6 +43,7 @@ type UserRow = {
 export function UserFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [pending, startTransition] = useTransition();
 
   return (
     <form
@@ -56,7 +58,9 @@ export function UserFilters() {
         if (q) params.set("q", q);
         if (role) params.set("role", role);
         if (blocked) params.set("blocked", blocked);
-        router.push(`${ROUTES.superAdminUsers}?${params.toString()}`);
+        startTransition(() => {
+          router.push(`${ROUTES.superAdminUsers}?${params.toString()}`);
+        });
       }}
     >
       <div className="min-w-[200px] flex-1 space-y-2">
@@ -80,7 +84,9 @@ export function UserFilters() {
           <option value="true">Blocked</option>
         </Select>
       </div>
-      <Button type="submit">Filter</Button>
+      <Button type="submit" loading={pending}>
+        {pending ? "Filtering…" : "Filter"}
+      </Button>
     </form>
   );
 }
@@ -108,7 +114,7 @@ function RoleActions({
           type="button"
           size="sm"
           variant="outline"
-          disabled={pending}
+          loading={pending}
           onClick={() => {
             startTransition(async () => {
               const result = await promoteUserRole(userId, role);
@@ -120,7 +126,7 @@ function RoleActions({
             });
           }}
         >
-          → {role.replace("_", " ")}
+          {pending ? "Updating…" : `→ ${role.replace("_", " ")}`}
         </Button>
       ))}
     </div>
@@ -133,9 +139,10 @@ export function UsersTable({ users }: { users: UserRow[] }) {
 
   if (users.length === 0) {
     return (
-      <div className="empty-state">
-        <p className="text-sm text-muted-foreground">No users match your filters.</p>
-      </div>
+      <EmptyState
+        title="No users found"
+        description="Try adjusting your search or filter criteria."
+      />
     );
   }
 
@@ -189,7 +196,7 @@ export function UsersTable({ users }: { users: UserRow[] }) {
                       type="button"
                       size="sm"
                       variant={user.isBlocked ? "outline" : "ghost"}
-                      disabled={pending}
+                      loading={pending}
                       onClick={() => {
                         startTransition(async () => {
                           const result = await toggleUserBlocked(
@@ -206,7 +213,11 @@ export function UsersTable({ users }: { users: UserRow[] }) {
                         });
                       }}
                     >
-                      {user.isBlocked ? "Unblock" : "Block"}
+                      {pending
+                        ? "Updating…"
+                        : user.isBlocked
+                          ? "Unblock"
+                          : "Block"}
                     </Button>
                   </div>
                 </td>
