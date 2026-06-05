@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireUser } from "@/lib/auth";
+import { getActionRateLimitError } from "@/lib/rate-limit-action";
 import { ROUTES } from "@/lib/constants/routes";
 import { db } from "@/lib/db";
 import { getEffectiveStock } from "@/lib/catalog.utils";
@@ -33,6 +34,9 @@ export async function addToCart(
   productId: string,
   quantity = 1,
 ): Promise<ActionState> {
+  const rateError = await getActionRateLimitError("cart");
+  if (rateError) return { error: rateError };
+
   const user = await requireUser();
 
   if (quantity < 1 || quantity > 99) {

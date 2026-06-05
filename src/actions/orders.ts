@@ -14,6 +14,7 @@ import {
   revalidateCatalogCache,
 } from "@/lib/revalidate-cache";
 import { requireStoreStaff, requireUser } from "@/lib/auth";
+import { getActionRateLimitError } from "@/lib/rate-limit-action";
 import { ROUTES } from "@/lib/constants/routes";
 import { db } from "@/lib/db";
 import { logActivityForActor } from "@/lib/services/activity-log.service";
@@ -36,6 +37,9 @@ export async function placeOrder(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  const rateError = await getActionRateLimitError("checkout");
+  if (rateError) return { error: rateError };
+
   const user = await requireUser();
 
   const parsed = parseCheckoutFormData(formData);

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireUser } from "@/lib/auth";
+import { getActionRateLimitError } from "@/lib/rate-limit-action";
 import { ROUTES } from "@/lib/constants/routes";
 import { db } from "@/lib/db";
 import { getOrCreateWishlist } from "@/lib/services/wishlist.service";
@@ -10,6 +11,9 @@ import { getOrCreateWishlist } from "@/lib/services/wishlist.service";
 export type ActionState = { error?: string; success?: boolean };
 
 export async function toggleWishlist(productId: string): Promise<ActionState> {
+  const rateError = await getActionRateLimitError("wishlist");
+  if (rateError) return { error: rateError };
+
   const user = await requireUser();
   const wishlist = await getOrCreateWishlist(user.id);
 

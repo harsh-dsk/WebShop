@@ -2,8 +2,20 @@ import { NextResponse } from "next/server";
 
 import { getCurrentUser, isStoreStaff } from "@/lib/auth";
 import { uploadProductImage } from "@/lib/cloudinary";
+import {
+  checkRateLimit,
+  getClientIp,
+  RATE_LIMITS,
+} from "@/lib/rate-limit";
+import { rateLimitExceededResponse } from "@/lib/rate-limit-response";
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const rateLimit = checkRateLimit(`upload:${ip}`, RATE_LIMITS.upload);
+  if (!rateLimit.success) {
+    return rateLimitExceededResponse(rateLimit);
+  }
+
   const user = await getCurrentUser();
 
   if (!user || !isStoreStaff(user.role)) {
@@ -52,15 +64,14 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ image });
-  } catch (error: any) {
-  console.error("UPLOAD ERROR FULL:", error);
-
-  return NextResponse.json(
-    {
-      error: error?.message || "Upload failed",
-      stack: error?.stack,
-    },
-    { status: 500 }
-  );
-}
+  } catch (error) {
+    console.error("[upload] Failed:", error);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Upload failed. Try again.",
+      },
+      { status: 500 },
+    );
+  }
 }

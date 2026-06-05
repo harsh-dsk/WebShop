@@ -18,8 +18,23 @@ export function ProductGallery({ images, productName, className }: ProductGaller
   const safeImages = useMemo(() => images.filter((i) => i?.url), [images]);
   const [active, setActive] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
+  const [brokenUrls, setBrokenUrls] = useState<Set<string>>(() => new Set());
 
-  const current = safeImages[active];
+  const visibleImages = useMemo(
+    () => safeImages.filter((img) => !brokenUrls.has(img.url)),
+    [safeImages, brokenUrls],
+  );
+
+  const current = visibleImages[active];
+
+  function markBroken(url: string) {
+    setBrokenUrls((prev) => {
+      if (prev.has(url)) return prev;
+      const next = new Set(prev);
+      next.add(url);
+      return next;
+    });
+  }
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -41,6 +56,7 @@ export function ProductGallery({ images, productName, className }: ProductGaller
               )}
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"
+              onError={() => markBroken(current.url)}
             />
             <div className="absolute right-3 top-3">
               <Button
@@ -63,9 +79,9 @@ export function ProductGallery({ images, productName, className }: ProductGaller
         )}
       </div>
 
-      {safeImages.length > 1 && (
+      {visibleImages.length > 1 && (
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-6">
-          {safeImages.slice(0, 12).map((img, idx) => (
+          {visibleImages.slice(0, 12).map((img, idx) => (
             <button
               key={img.publicId}
               type="button"
@@ -88,6 +104,7 @@ export function ProductGallery({ images, productName, className }: ProductGaller
                 fill
                 className="object-cover"
                 sizes="96px"
+                onError={() => markBroken(img.url)}
               />
             </button>
           ))}

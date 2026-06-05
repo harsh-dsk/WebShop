@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -11,7 +12,20 @@ import {
   getBestSellingProducts,
   queryProducts,
 } from "@/lib/services/catalog.service";
+import { buildPageMetadata } from "@/lib/seo";
 import { getRuntimeSiteConfig } from "@/lib/services/site-settings.service";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const config = await getRuntimeSiteConfig();
+  const { brand, hero } = config;
+
+  return buildPageMetadata({
+    title: brand.name,
+    description: brand.description || hero.subtitle,
+    urlPath: "/",
+    imageUrl: hero.imageUrl ?? null,
+  });
+}
 
 export default async function HomePage() {
   const config = await getRuntimeSiteConfig();

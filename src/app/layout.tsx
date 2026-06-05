@@ -27,6 +27,15 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.brand.name}`,
   },
   description: siteConfig.brand.description,
+  robots: {
+    index: true,
+    follow: true,
+  },
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "http://localhost:3000",
+  ),
 };
 
 export default async function RootLayout({

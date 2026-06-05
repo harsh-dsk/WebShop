@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ProductJsonLd } from "@/components/seo/product-json-ld";
 import { AddToCartButton } from "@/components/shop/add-to-cart-button";
 import { ProductGallery } from "@/components/shop/product-gallery";
 import { RecentlyViewed } from "@/components/shop/recently-viewed";
@@ -90,8 +91,25 @@ export default async function ProductDetailPage({ params }: PageProps) {
     : [null, false];
   const cartQuantity = cartItem?.quantity ?? 0;
 
+  const primaryImage = images[0]?.url ?? null;
+  const seoDescription =
+    product.metaDescription ??
+    product.shortDescription ??
+    product.description?.slice(0, 160) ??
+    `${product.name} at ${siteConfig.brand.name}`;
+
   return (
     <div className="page-container py-10 sm:py-12">
+      <ProductJsonLd
+        name={product.name}
+        description={seoDescription}
+        slug={product.slug}
+        price={price}
+        imageUrl={primaryImage}
+        sku={product.sku}
+        inStock={!outOfStock}
+        brandName={siteConfig.brand.name}
+      />
       <nav className="breadcrumb" aria-label="Breadcrumb">
         <Link href={ROUTES.products}>Products</Link>
         <span aria-hidden>/</span>

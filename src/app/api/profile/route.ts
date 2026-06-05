@@ -1,25 +1,60 @@
 import { NextResponse } from "next/server";
 
-import { requireUser } from "@/lib/auth";
+import { requireApiUser } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import {
+  checkRateLimit,
+  getClientIp,
+  RATE_LIMITS,
+} from "@/lib/rate-limit";
+import { rateLimitExceededResponse } from "@/lib/rate-limit-response";
+import { profileUpdateSchema } from "@/lib/validations/profile";
 
 export async function PATCH(request: Request) {
-  const user = await requireUser();
-  const body = await request.json();
+  const ip = getClientIp(request);
+  const rateLimit = checkRateLimit(`profile:${ip}`, RATE_LIMITS.mutation);
+  if (!rateLimit.success) {
+    return rateLimitExceededResponse(rateLimit);
+  }
 
-  const { fullName, phone, address, city, state, postalCode } = body ?? {};
+  const { user, response } = await requireApiUser();
+  if (response) return response;
 
-  const updated = await db.user.update({
-    where: { id: user.id },
-    data: {
-      fullName: fullName ?? user.fullName,
-      phone: phone ?? user.phone,
-      address: address ?? user.address,
-      city: city ?? user.city,
-      state: state ?? user.state,
-      postalCode: postalCode ?? user.postalCode,
-    },
-  });
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
-  return NextResponse.json({ ok: true, user: { id: updated.id } });
+  const parsed = profileUpdateSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.errors[0]?.message ?? "Invalid input" },
+      { status: 400 },
+    );
+  }
+
+  const data = parsed.data;
+
+  try {
+    const updated = await db.user.update({
+      where: { id: user.id },
+      data: {
+        fullName: data.fullName ?? user.fullName,
+        phone: data.phone ?? user.phone,
+        address: data.address ?? user.address,
+        city: data.city ?? user.city,
+        state: data.state ?? user.state,
+        postalCode: data.postalCode ?? user.postalCode,
+      },
+    });
+
+    return NextResponse.json({ ok: true, user: { id: updated.id } });
+  } catch {
+    return NextResponse.json(
+      { error: "Could not update profile. Please try again." },
+      { status: 500 },
+    );
+  }
 }

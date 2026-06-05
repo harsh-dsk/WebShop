@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/lib/auth";
+import { getActionRateLimitError } from "@/lib/rate-limit-action";
 import { ROUTES } from "@/lib/constants/routes";
 import {
   createUserAddress,
@@ -43,6 +44,9 @@ export async function createAddress(
   _prev: AddressActionState,
   formData: FormData,
 ): Promise<AddressActionState> {
+  const rateError = await getActionRateLimitError("address");
+  if (rateError) return { error: rateError };
+
   const user = await requireUser();
   const parsed = parseAddressFormData(formData);
 
@@ -69,6 +73,9 @@ export async function updateAddress(
   _prev: AddressActionState,
   formData: FormData,
 ): Promise<AddressActionState> {
+  const rateError = await getActionRateLimitError("address");
+  if (rateError) return { error: rateError };
+
   const user = await requireUser();
   const parsed = parseAddressFormData(formData);
 
@@ -90,6 +97,9 @@ export async function updateAddress(
 }
 
 export async function deleteAddress(addressId: string): Promise<AddressActionState> {
+  const rateError = await getActionRateLimitError("address");
+  if (rateError) return { error: rateError };
+
   const user = await requireUser();
   const deleted = await deleteUserAddress(user.id, addressId);
 
@@ -102,6 +112,9 @@ export async function deleteAddress(addressId: string): Promise<AddressActionSta
 }
 
 export async function setDefaultAddress(addressId: string): Promise<AddressActionState> {
+  const rateError = await getActionRateLimitError("address");
+  if (rateError) return { error: rateError };
+
   const user = await requireUser();
   const updated = await setDefaultUserAddress(user.id, addressId);
 

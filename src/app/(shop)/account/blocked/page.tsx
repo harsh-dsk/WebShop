@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
+
+export const metadata: Metadata = {
+  title: "Account blocked",
+  robots: { index: false, follow: false },
+};
 
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/constants/routes";
