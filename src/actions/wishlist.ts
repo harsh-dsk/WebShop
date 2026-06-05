@@ -34,8 +34,7 @@ export async function toggleWishlist(productId: string): Promise<ActionState> {
 
 export async function removeFromWishlist(
   wishlistItemId: string,
-  _formData: FormData,
-): Promise<void> {
+): Promise<ActionState> {
   const user = await requireUser();
   const wishlist = await getOrCreateWishlist(user.id);
 
@@ -44,9 +43,12 @@ export async function removeFromWishlist(
     select: { id: true },
   });
 
-  if (!existing) return;
+  if (!existing) {
+    return { error: "Wishlist item not found" };
+  }
 
   await db.wishlistItem.delete({ where: { id: wishlistItemId } });
   revalidatePath(ROUTES.wishlist);
+  return { success: true };
 }
 
