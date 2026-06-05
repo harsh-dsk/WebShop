@@ -1,12 +1,16 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
   ActivityAction,
   ActivityEntityType,
 } from "@/lib/activity-log/actions";
+import {
+  revalidateAnalyticsCache,
+  revalidateCatalogCache,
+} from "@/lib/revalidate-cache";
 import { requireStoreStaff } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ROUTES } from "@/lib/constants/routes";
@@ -116,6 +120,9 @@ async function syncVariants(
 }
 
 function revalidateProductPaths(slug?: string) {
+  revalidateCatalogCache();
+  revalidateAnalyticsCache();
+  if (slug) revalidateTag(`product:${slug}`);
   revalidatePath(ROUTES.products);
   revalidatePath(ROUTES.adminProducts);
   revalidatePath(ROUTES.adminInventory);

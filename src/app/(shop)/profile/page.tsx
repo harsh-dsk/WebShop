@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 
 import { Button } from "@/components/ui/button";
 import AddressForm from "@/components/profile/address-form";
-import { getSessionSummary, requireUser } from "@/lib/auth";
+import { isStoreStaff, isSuperAdmin, requireUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 
 export const metadata: Metadata = {
@@ -14,8 +14,16 @@ export const metadata: Metadata = {
 
 export default async function ProfilePage() {
   const user = await requireUser();
-  const session = await getSessionSummary();
-  const { sessionClaims } = await auth();
+  const { sessionId, sessionClaims, userId } = await auth();
+  const session = {
+    isSignedIn: Boolean(userId),
+    sessionId,
+    clerkUserId: userId,
+    user,
+    role: user.role,
+    isStoreStaff: isStoreStaff(user.role),
+    isSuperAdmin: isSuperAdmin(user.role),
+  };
 
   const fullName =
     [user.firstName, user.lastName].filter(Boolean).join(" ") || "—";

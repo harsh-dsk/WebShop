@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 import { db } from "@/lib/db";
-import { getEffectiveStock } from "@/lib/services/catalog.service";
+import { getEffectiveStock } from "@/lib/catalog.utils";
 import { getOrCreateCart } from "@/lib/services/cart.service";
 
 export type ActionState = {

@@ -8,7 +8,7 @@ import {
   getEffectiveStock,
   getPrimaryImage,
   parseProductImages,
-} from "@/lib/services/catalog.service";
+} from "@/lib/catalog.utils";
 
 type ProductCardProps = {
   product: {

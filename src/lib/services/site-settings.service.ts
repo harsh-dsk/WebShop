@@ -1,5 +1,8 @@
 import type { Prisma, SiteSettings } from "@prisma/client";
+import { unstable_cache } from "next/cache";
+import { cache as reactCache } from "react";
 
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import {
   getDefaultSiteSettingsData,
@@ -25,7 +28,7 @@ function defaultSettingsRecord(): SiteSettings {
   } as SiteSettings;
 }
 
-export async function ensureSiteSettings(): Promise<SiteSettings> {
+async function fetchSiteSettingsRecord(): Promise<SiteSettings> {
   try {
     const existing = await db.siteSettings.findUnique({
       where: { id: "default" },
@@ -36,8 +39,6 @@ export async function ensureSiteSettings(): Promise<SiteSettings> {
       data: getDefaultSiteSettingsData(),
     });
   } catch (err: unknown) {
-    // If the table doesn't exist yet (P2021), return default settings so
-    // server-side rendering and builds can proceed without a live DB schema.
     if (isMissingTableError(err)) {
       return defaultSettingsRecord();
     }
@@ -45,14 +46,29 @@ export async function ensureSiteSettings(): Promise<SiteSettings> {
   }
 }
 
-export async function getSiteSettingsRecord(): Promise<SiteSettings> {
-  return ensureSiteSettings();
+const getCachedSiteSettingsRecord = unstable_cache(
+  fetchSiteSettingsRecord,
+  ["site-settings-record"],
+  {
+    tags: [CACHE_TAGS.siteSettings],
+    revalidate: 300,
+  },
+);
+
+export async function ensureSiteSettings(): Promise<SiteSettings> {
+  return fetchSiteSettingsRecord();
 }
 
-export async function getRuntimeSiteConfig(): Promise<RuntimeSiteConfig> {
-  const settings = await getSiteSettingsRecord();
-  return mapSiteSettingsToRuntime(settings);
-}
+export const getSiteSettingsRecord = reactCache(
+  async (): Promise<SiteSettings> => getCachedSiteSettingsRecord(),
+);
+
+export const getRuntimeSiteConfig = reactCache(
+  async (): Promise<RuntimeSiteConfig> => {
+    const settings = await getSiteSettingsRecord();
+    return mapSiteSettingsToRuntime(settings);
+  },
+);
 
 export async function updateSiteSettings(
   data: Prisma.SiteSettingsUpdateInput,

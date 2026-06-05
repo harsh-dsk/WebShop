@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { getPrimaryImage, parseProductImages } from "@/lib/services/catalog.service";
+import { getPrimaryImage, parseProductImages } from "@/lib/catalog.utils";
 
 export async function getOrCreateWishlist(userId: string) {
   const existing = await db.wishlist.findUnique({ where: { userId } });
@@ -51,10 +51,11 @@ export async function getWishlistWithItems(userId: string) {
 }
 
 export async function isInWishlist(userId: string, productId: string): Promise<boolean> {
-  const wishlist = await db.wishlist.findUnique({ where: { userId }, select: { id: true } });
-  if (!wishlist) return false;
-  const item = await db.wishlistItem.findUnique({
-    where: { wishlistId_productId: { wishlistId: wishlist.id, productId } },
+  const item = await db.wishlistItem.findFirst({
+    where: {
+      productId,
+      wishlist: { userId },
+    },
     select: { id: true },
   });
   return Boolean(item);

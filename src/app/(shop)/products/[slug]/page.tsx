@@ -73,20 +73,22 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const isLowStock =
     effectiveStock > 0 && effectiveStock <= product.lowStockThreshold;
 
-  const user = await getCurrentUser();
-  const cartItem = user
-    ? await getCartItemByProduct(user.id, product.id)
-    : null;
-  const cartQuantity = cartItem?.quantity ?? 0;
-  const isWishlisted = user
-    ? await isInWishlist(user.id, product.id)
-    : false;
+  const [user, related] = await Promise.all([
+    getCurrentUser(),
+    getRelatedProducts({
+      productId: product.id,
+      categoryId: product.categoryId,
+      limit: 8,
+    }),
+  ]);
 
-  const related = await getRelatedProducts({
-    productId: product.id,
-    categoryId: product.categoryId,
-    limit: 8,
-  });
+  const [cartItem, isWishlisted] = user
+    ? await Promise.all([
+        getCartItemByProduct(user.id, product.id),
+        isInWishlist(user.id, product.id),
+      ])
+    : [null, false];
+  const cartQuantity = cartItem?.quantity ?? 0;
 
   return (
     <div className="page-container py-10 sm:py-12">

@@ -1,10 +1,13 @@
 import type { Prisma, Role } from "@prisma/client";
+import { unstable_cache } from "next/cache";
 
 import {
   ActivityAction,
   type ActivityActionType,
   type ActivityEntityTypeValue,
 } from "@/lib/activity-log/actions";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { revalidateActivitySummaryCache } from "@/lib/revalidate-cache";
 import { getUserDisplayName } from "@/lib/activity-log/user-display";
 import { db } from "@/lib/db";
 
@@ -59,12 +62,13 @@ export async function logActivityForActor(
   actor: ActorFields,
   input: Omit<LogActivityInput, "userId" | "userName" | "userRole">,
 ): Promise<void> {
-  return logActivity({
+  await logActivity({
     userId: actor.id,
     userName: getUserDisplayName(actor),
     userRole: actor.role,
     ...input,
   });
+  revalidateActivitySummaryCache();
 }
 
 export async function queryActivityLogs(filters: ActivityLogFilters = {}) {
@@ -114,7 +118,7 @@ export async function queryActivityLogs(filters: ActivityLogFilters = {}) {
   };
 }
 
-export async function getActivityLogSummary() {
+async function fetchActivityLogSummary() {
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   const [total, last24h, byRole, recentActions] = await Promise.all([
@@ -151,5 +155,14 @@ export async function getActivityLogSummary() {
     topActions,
   };
 }
+
+export const getActivityLogSummary = unstable_cache(
+  fetchActivityLogSummary,
+  ["activity-log-summary"],
+  {
+    tags: [CACHE_TAGS.activitySummary],
+    revalidate: 30,
+  },
+);
 
 export { PAGE_SIZE as ACTIVITY_LOG_PAGE_SIZE };

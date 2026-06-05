@@ -1,6 +1,12 @@
 import { OrderStatus } from "@prisma/client";
+import { unstable_cache } from "next/cache";
 
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
+import {
+  countOutOfStockActiveProducts,
+  getLowStockProducts,
+} from "@/lib/services/inventory-metrics.service";
 
 const REVENUE_STATUSES = [
   OrderStatus.CONFIRMED,
@@ -27,7 +33,7 @@ async function revenueSince(since: Date): Promise<number> {
   return Number(result._sum.total ?? 0);
 }
 
-export async function getSuperAdminAnalytics() {
+async function fetchSuperAdminAnalytics() {
   const now = new Date();
   const since7 = daysAgo(7);
   const since30 = daysAgo(30);
@@ -40,6 +46,8 @@ export async function getSuperAdminAnalytics() {
     revenue7,
     revenue30,
     topSelling,
+    lowStockProducts,
+    outOfStockCount,
   ] = await Promise.all([
     db.order.aggregate({
       where: { status: { in: [...REVENUE_STATUSES] } },
@@ -56,51 +64,9 @@ export async function getSuperAdminAnalytics() {
       orderBy: { _sum: { quantity: "desc" } },
       take: 10,
     }),
+    getLowStockProducts(15),
+    countOutOfStockActiveProducts(),
   ]);
-
-  const products = await db.product.findMany({
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      stock: true,
-      lowStockThreshold: true,
-      isActive: true,
-      variants: { select: { stock: true, isActive: true } },
-    },
-  });
-
-  const lowStock: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    stock: number;
-    lowStockThreshold: number;
-  }> = [];
-
-  for (const p of products) {
-    const variantStock = p.variants
-      .filter((v) => v.isActive)
-      .reduce((sum, v) => sum + v.stock, 0);
-    const effectiveStock =
-      p.variants.length > 0 ? variantStock : p.stock;
-
-    if (
-      p.isActive &&
-      effectiveStock > 0 &&
-      effectiveStock <= p.lowStockThreshold
-    ) {
-      lowStock.push({
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        stock: effectiveStock,
-        lowStockThreshold: p.lowStockThreshold,
-      });
-    }
-  }
-
-  lowStock.sort((a, b) => a.stock - b.stock);
 
   return {
     totalRevenue: Number(totalRevenueAgg._sum.total ?? 0),
@@ -115,14 +81,17 @@ export async function getSuperAdminAnalytics() {
       unitsSold: row._sum.quantity ?? 0,
       revenue: Number(row._sum.lineTotal ?? 0),
     })),
-    lowStockProducts: lowStock.slice(0, 15),
-    outOfStockCount: products.filter((p) => {
-      const variantStock = p.variants
-        .filter((v) => v.isActive)
-        .reduce((sum, v) => sum + v.stock, 0);
-      const effective = p.variants.length > 0 ? variantStock : p.stock;
-      return p.isActive && effective === 0;
-    }).length,
+    lowStockProducts,
+    outOfStockCount,
     generatedAt: now,
   };
 }
+
+export const getSuperAdminAnalytics = unstable_cache(
+  fetchSuperAdminAnalytics,
+  ["super-admin-analytics"],
+  {
+    tags: [CACHE_TAGS.analytics],
+    revalidate: 60,
+  },
+);

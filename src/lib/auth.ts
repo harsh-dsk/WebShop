@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { Role, type User } from "@prisma/client";
 import { redirect } from "next/navigation";
+import { cache as reactCache } from "react";
 
 import { syncClerkPublicMetadata, upsertUserFromClerk } from "@/lib/clerk-sync";
 import { db } from "@/lib/db";
@@ -19,7 +20,7 @@ export async function getClerkUserId(): Promise<string | null> {
   return userId;
 }
 
-export async function getCurrentUser(): Promise<User | null> {
+export const getCurrentUser = reactCache(async (): Promise<User | null> => {
   const { userId } = await auth();
   if (!userId) return null;
 
@@ -33,7 +34,7 @@ export async function getCurrentUser(): Promise<User | null> {
   if (!clerkUser || clerkUser.id !== userId) return null;
 
   return upsertUserFromClerk(clerkUser);
-}
+});
 
 export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();
@@ -81,9 +82,14 @@ export async function requireAdmin(): Promise<User> {
   return requireStoreStaff();
 }
 
-export async function getSessionSummary() {
+export async function getSessionSummary(existingUser?: User | null) {
   const { userId, sessionId } = await auth();
-  const user = userId ? await getCurrentUser() : null;
+  const user =
+    existingUser !== undefined
+      ? existingUser
+      : userId
+        ? await getCurrentUser()
+        : null;
 
   return {
     isSignedIn: Boolean(userId),

@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { revalidateSiteSettingsCache } from "@/lib/revalidate-cache";
+
 import type { ActionState } from "@/actions/orders";
 import {
   ActivityAction,
@@ -19,6 +21,7 @@ import {
 } from "@/lib/validations/site-settings";
 
 function revalidateSitePaths() {
+  revalidateSiteSettingsCache();
   revalidatePath(ROUTES.home);
   revalidatePath(ROUTES.superAdminSettings);
   revalidatePath(ROUTES.superAdminTheme);

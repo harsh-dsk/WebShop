@@ -3,7 +3,7 @@ import {
   getEffectiveStock,
   getPrimaryImage,
   parseProductImages,
-} from "@/lib/services/catalog.service";
+} from "@/lib/catalog.utils";
 export async function getOrCreateCart(userId: string) {
   const existing = await db.cart.findUnique({
     where: { userId },
@@ -63,14 +63,11 @@ export async function getCartWithItems(userId: string) {
 }
 
 export async function getCartItemCount(userId: string): Promise<number> {
-  const cart = await db.cart.findUnique({
-    where: { userId },
-    include: { items: { select: { quantity: true } } },
+  const result = await db.cartItem.aggregate({
+    where: { cart: { userId } },
+    _sum: { quantity: true },
   });
-
-  if (!cart) return 0;
-
-  return cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  return result._sum.quantity ?? 0;
 }
 
 export async function getCartItemByProduct(userId: string, productId: string) {

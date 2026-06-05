@@ -1,4 +1,9 @@
 import { db } from "@/lib/db";
+import {
+  countLowStockProducts,
+  countOutOfStockActiveProducts,
+  sumTotalInventoryUnits,
+} from "@/lib/services/inventory-metrics.service";
 
 export async function getAdminDashboardStats() {
   const [
@@ -10,33 +15,27 @@ export async function getAdminDashboardStats() {
     totalRevenue,
     pendingOrders,
     deliveredOrders,
-    products,
-    recentProducts,
+    lowStockCount,
     outOfStock,
+    totalUnits,
+    recentProducts,
   ] = await Promise.all([
     db.product.count(),
     db.product.count({ where: { isActive: true } }),
     db.category.count(),
     db.category.count({ where: { isActive: true } }),
     db.order.count(),
-    // Revenue should only include orders that are realistically fulfillable.
-    // Excludes CANCELLED and PENDING.
     db.order.aggregate({
-      where: { status: { in: ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"] } },
+      where: {
+        status: { in: ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"] },
+      },
       _sum: { total: true },
     }),
     db.order.count({ where: { status: "PENDING" } }),
     db.order.count({ where: { status: "DELIVERED" } }),
-    db.product.findMany({
-      select: {
-        id: true,
-        name: true,
-        stock: true,
-        lowStockThreshold: true,
-        isActive: true,
-        variants: { select: { stock: true, isActive: true } },
-      },
-    }),
+    countLowStockProducts(),
+    countOutOfStockActiveProducts(),
+    sumTotalInventoryUnits(),
     db.product.findMany({
       take: 5,
       orderBy: { createdAt: "desc" },
@@ -51,27 +50,7 @@ export async function getAdminDashboardStats() {
         _count: { select: { variants: true } },
       },
     }),
-    db.product.count({ where: { stock: 0, isActive: true } }),
   ]);
-
-  let lowStockCount = 0;
-  let totalUnits = 0;
-
-  for (const p of products) {
-    const variantStock = p.variants
-      .filter((v) => v.isActive)
-      .reduce((sum, v) => sum + v.stock, 0);
-    const effectiveStock =
-      p.variants.length > 0 ? variantStock : p.stock;
-    totalUnits += effectiveStock;
-
-    if (
-      effectiveStock > 0 &&
-      effectiveStock <= p.lowStockThreshold
-    ) {
-      lowStockCount += 1;
-    }
-  }
 
   return {
     productCount,

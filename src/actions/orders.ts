@@ -8,6 +8,11 @@ import {
   ActivityAction,
   ActivityEntityType,
 } from "@/lib/activity-log/actions";
+import {
+  revalidateActivitySummaryCache,
+  revalidateAnalyticsCache,
+  revalidateCatalogCache,
+} from "@/lib/revalidate-cache";
 import { requireStoreStaff, requireUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 import { db } from "@/lib/db";
@@ -62,6 +67,9 @@ export async function placeOrder(
     },
   });
 
+  revalidateAnalyticsCache();
+  revalidateCatalogCache();
+  revalidateActivitySummaryCache();
   revalidatePath(ROUTES.cart);
   revalidatePath(ROUTES.superAdminActivity);
   revalidatePath(ROUTES.checkout);
@@ -117,6 +125,9 @@ export async function updateOrderStatus(
     });
   });
 
+  revalidateAnalyticsCache();
+  revalidateCatalogCache();
+  revalidateActivitySummaryCache();
   revalidatePath(ROUTES.adminOrders);
   revalidatePath(`${ROUTES.adminOrders}/${orderId}`);
   revalidatePath(ROUTES.accountOrders);

@@ -1,8 +1,12 @@
 import type { Prisma } from "@prisma/client";
+import { unstable_cache } from "next/cache";
+import { cache as reactCache } from "react";
 
 import { siteConfig } from "@/config/site";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
-import type { ProductImage } from "@/types/catalog";
+
+export { getEffectiveStock, getPrimaryImage, parseProductImages } from "@/lib/catalog.utils";
 
 export type ProductSort = "newest" | "price-asc" | "price-desc" | "name";
 
@@ -93,30 +97,52 @@ export async function queryProducts(params: CatalogQuery = {}) {
   };
 }
 
-export async function getProductBySlug(slug: string, includeInactive = false) {
+const productBySlugInclude = {
+  category: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      attributeSchema: true,
+      imageUrl: true,
+      description: true,
+    },
+  },
+  variants: {
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" as const },
+  },
+} satisfies Prisma.ProductInclude;
+
+async function fetchProductBySlug(slug: string, includeInactive: boolean) {
   return db.product.findFirst({
     where: {
       slug,
       ...(includeInactive ? {} : { isActive: true }),
     },
-    include: {
-      category: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          attributeSchema: true,
-          imageUrl: true,
-          description: true,
-        },
-      },
-      variants: {
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-      },
-    },
+    include: productBySlugInclude,
   });
 }
+
+function getCachedActiveProductBySlug(slug: string) {
+  return unstable_cache(
+    () => fetchProductBySlug(slug, false),
+    ["product-by-slug", slug],
+    {
+      tags: [CACHE_TAGS.catalog, `product:${slug}`],
+      revalidate: 120,
+    },
+  )();
+}
+
+export const getProductBySlug = reactCache(
+  async (slug: string, includeInactive = false) => {
+    if (includeInactive) {
+      return fetchProductBySlug(slug, true);
+    }
+    return getCachedActiveProductBySlug(slug);
+  },
+);
 
 export async function getRelatedProducts(params: {
   productId: string;
@@ -154,27 +180,23 @@ export async function getProductsBySlugs(slugs: string[]) {
     .filter((product): product is NonNullable<typeof product> => Boolean(product));
 }
 
-export function getEffectiveStock(product: {
-  stock: number;
-  variants?: { stock: number; isActive: boolean }[];
-}): number {
-  if (product.variants && product.variants.length > 0) {
-    return product.variants
-      .filter((v) => v.isActive)
-      .reduce((sum, v) => sum + v.stock, 0);
-  }
-  return product.stock;
-}
+const fetchActiveCategories = unstable_cache(
+  async () =>
+    db.category.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      include: {
+        _count: { select: { products: { where: { isActive: true } } } },
+      },
+    }),
+  ["active-categories"],
+  {
+    tags: [CACHE_TAGS.categories],
+    revalidate: 300,
+  },
+);
 
-export async function getActiveCategories() {
-  return db.category.findMany({
-    where: { isActive: true },
-    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-    include: {
-      _count: { select: { products: { where: { isActive: true } } } },
-    },
-  });
-}
+export const getActiveCategories = reactCache(fetchActiveCategories);
 
 export async function getCategoryBySlug(slug: string) {
   return db.category.findFirst({
@@ -185,25 +207,7 @@ export async function getCategoryBySlug(slug: string) {
   });
 }
 
-export function getPrimaryImage(images: unknown): ProductImage | null {
-  if (!Array.isArray(images) || images.length === 0) return null;
-  const first = images[0] as ProductImage;
-  if (typeof first?.url === "string") return first;
-  return null;
-}
-
-export function parseProductImages(images: unknown): ProductImage[] {
-  if (!Array.isArray(images)) return [];
-  return images.filter(
-    (img): img is ProductImage =>
-      typeof img === "object" &&
-      img !== null &&
-      "url" in img &&
-      typeof (img as ProductImage).url === "string",
-  );
-}
-
-export async function getBestSellingProducts(pageSize = 8) {
+const fetchBestSellingProducts = async (pageSize: number) => {
   const grouped = await db.orderItem.groupBy({
     by: ["productId"],
     _sum: { quantity: true },
@@ -230,4 +234,17 @@ export async function getBestSellingProducts(pageSize = 8) {
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
   return { items, total: items.length, page: 1, pageSize, totalPages: 1 };
+};
+
+const getCachedBestSellers = unstable_cache(
+  async (pageSize: number) => fetchBestSellingProducts(pageSize),
+  ["best-selling-products"],
+  {
+    tags: [CACHE_TAGS.analytics, CACHE_TAGS.catalog],
+    revalidate: 120,
+  },
+);
+
+export async function getBestSellingProducts(pageSize = 8) {
+  return getCachedBestSellers(pageSize);
 }

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { parseProductImages } from "@/lib/services/catalog.service";
+import { parseProductImages } from "@/lib/catalog.utils";
 import type { AttributeField, ProductImage, ProductVariantInput } from "@/types/catalog";
 
 type CategoryOption = {

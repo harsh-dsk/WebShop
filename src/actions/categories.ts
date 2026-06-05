@@ -1,6 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+
+import {
+  revalidateCatalogCache,
+  revalidateCategoriesCache,
+} from "@/lib/revalidate-cache";
 import { redirect } from "next/navigation";
 
 import { requireStoreStaff } from "@/lib/auth";
@@ -67,6 +72,8 @@ export async function createCategory(
     },
   });
 
+  revalidateCategoriesCache();
+  revalidateCatalogCache();
   revalidatePath(ROUTES.categories);
   revalidatePath(ROUTES.adminCategories);
   redirect(ROUTES.adminCategories);
@@ -117,6 +124,8 @@ export async function updateCategory(
     },
   });
 
+  revalidateCategoriesCache();
+  revalidateCatalogCache();
   revalidatePath(ROUTES.categories);
   revalidatePath(`${ROUTES.categories}/${slug}`);
   revalidatePath(ROUTES.adminCategories);
@@ -134,6 +143,8 @@ export async function deleteCategory(id: string): Promise<ActionState> {
 
   await db.category.delete({ where: { id } });
 
+  revalidateCategoriesCache();
+  revalidateCatalogCache();
   revalidatePath(ROUTES.categories);
   revalidatePath(ROUTES.adminCategories);
   return { success: true };
