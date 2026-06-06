@@ -103,17 +103,22 @@ function RoleActions({
   const targets = getAllowedRoleTargets(currentRole);
 
   if (targets.length === 0) {
-    return <span className="text-xs text-muted-foreground">—</span>;
+    return (
+      <span className="inline-flex h-9 shrink-0 items-center text-xs text-muted-foreground">
+        —
+      </span>
+    );
   }
 
   return (
-    <div className="flex flex-wrap gap-1">
+    <>
       {targets.map((role) => (
         <Button
           key={role}
           type="button"
           size="sm"
           variant="outline"
+          className="shrink-0"
           loading={pending}
           onClick={() => {
             startTransition(async () => {
@@ -129,7 +134,7 @@ function RoleActions({
           {pending ? "Updating…" : `→ ${role.replace("_", " ")}`}
         </Button>
       ))}
-    </div>
+    </>
   );
 }
 
@@ -189,13 +194,14 @@ export function UsersTable({ users }: { users: UserRow[] }) {
                     <Badge variant="default">Active</Badge>
                   )}
                 </td>
-                <td>
-                  <div className="flex flex-col gap-2">
+                <td className="align-middle">
+                  <div className="flex min-h-9 flex-wrap items-center gap-2">
                     <RoleActions userId={user.id} currentRole={user.role} />
                     <Button
                       type="button"
                       size="sm"
                       variant={user.isBlocked ? "outline" : "ghost"}
+                      className="shrink-0"
                       loading={pending}
                       onClick={() => {
                         startTransition(async () => {
