@@ -10,6 +10,7 @@ import {
   updateStoreInfo,
   updateTheme,
 } from "@/actions/super-admin/settings";
+import { applyThemeVariables } from "@/components/brand/theme-variables";
 import { MediaUploadField } from "@/components/super-admin/media-upload-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -240,6 +241,17 @@ export function ThemeForm({ settings }: { settings: SiteSettings }) {
           if (result.error) toast.error(result.error);
           else {
             toast.success("Theme saved");
+
+            const themeColors = {
+              primary: String(fd.get("primaryColor") ?? "#000000"),
+              secondary: String(fd.get("secondaryColor") ?? "#000000"),
+              accent: String(fd.get("accentColor") ?? "#000000"),
+              background: String(fd.get("backgroundColor") ?? "#000000"),
+              text: String(fd.get("textColor") ?? "#000000"),
+              button: String(fd.get("buttonColor") ?? "#000000"),
+            };
+
+            applyThemeVariables(themeColors);
             router.refresh();
           }
         });

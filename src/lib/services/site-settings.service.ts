@@ -1,6 +1,5 @@
 import type { Prisma, SiteSettings } from "@prisma/client";
 import { unstable_cache } from "next/cache";
-import { cache as reactCache } from "react";
 
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
@@ -59,14 +58,24 @@ export async function ensureSiteSettings(): Promise<SiteSettings> {
   return fetchSiteSettingsRecord();
 }
 
-export const getSiteSettingsRecord = reactCache(
+export const getSiteSettingsRecord = unstable_cache(
   async (): Promise<SiteSettings> => getCachedSiteSettingsRecord(),
+  ["site-settings-record"],
+  {
+    tags: [CACHE_TAGS.siteSettings],
+    revalidate: 300,
+  },
 );
 
-export const getRuntimeSiteConfig = reactCache(
+export const getRuntimeSiteConfig = unstable_cache(
   async (): Promise<RuntimeSiteConfig> => {
     const settings = await getSiteSettingsRecord();
     return mapSiteSettingsToRuntime(settings);
+  },
+  ["runtime-site-config"],
+  {
+    tags: [CACHE_TAGS.siteSettings],
+    revalidate: 300,
   },
 );
 
