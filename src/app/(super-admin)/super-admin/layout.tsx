@@ -6,6 +6,8 @@ import { requireSuperAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 import { getRuntimeSiteConfig } from "@/lib/services/site-settings.service";
 
+export const dynamic = "force-dynamic";
+
 export default async function SuperAdminLayout({
   children,
 }: {

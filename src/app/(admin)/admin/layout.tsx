@@ -6,6 +6,8 @@ import { siteConfig } from "@/config/site";
 import { requireStoreStaff } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants/routes";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({
   children,
 }: {
