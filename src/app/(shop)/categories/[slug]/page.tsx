@@ -74,23 +74,23 @@ export default async function CategoryProductsPage({
   const filterParams = { q: sp.q, sort: sp.sort };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight text-primary">
-        {category.name}
-      </h1>
-      {category.description && (
-        <p className="mt-2 max-w-2xl text-muted-foreground">
-          {category.description}
+    <div className="page-container py-10 sm:py-12">
+      <header className="page-header border-b border-border/50 pb-8">
+        <h1 className="page-title text-4xl font-bold tracking-tight text-foreground">
+          {category.name}
+        </h1>
+        {category.description && (
+          <p className="mt-3 text-lg text-muted-foreground max-w-3xl">
+            {category.description}
+          </p>
+        )}
+        <p className="mt-4 text-sm font-medium text-muted-foreground">
+          {result.total} product{result.total !== 1 ? "s" : ""}
         </p>
-      )}
-      <p className="mt-2 text-sm text-muted-foreground">
-        {result.total} product{result.total !== 1 ? "s" : ""}
-        {" · "}
-        {category._count.products} in category
-      </p>
+      </header>
 
       <div className="mt-8">
-        <Suspense fallback={<div className="h-32 animate-pulse rounded-2xl bg-muted" />}>
+        <Suspense fallback={<div className="skeleton h-36 w-full" />}>
           <CatalogToolbar
             categories={categories.map((c) => ({
               slug: c.slug,
@@ -103,17 +103,28 @@ export default async function CategoryProductsPage({
       </div>
 
       <div className="mt-8">
-        <ProductGrid products={result.items} />
+        {result.items.length === 0 ? (
+          <div className="empty-state">
+            <p className="font-medium text-foreground">No products found</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Try adjusting your search or filters.
+            </p>
+          </div>
+        ) : (
+          <ProductGrid products={result.items} />
+        )}
       </div>
 
-      <div className="mt-10">
-        <Pagination
-          basePath={basePath}
-          page={result.page}
-          totalPages={result.totalPages}
-          searchParams={filterParams}
-        />
-      </div>
+      {result.totalPages > 1 && (
+        <div className="mt-10">
+          <Pagination
+            basePath={basePath}
+            page={result.page}
+            totalPages={result.totalPages}
+            searchParams={filterParams}
+          />
+        </div>
+      )}
     </div>
   );
 }
