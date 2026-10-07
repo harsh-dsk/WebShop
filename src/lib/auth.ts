@@ -28,7 +28,7 @@ export const getCurrentUser = reactCache(async (): Promise<User | null> => {
     where: { clerkId: userId },
   });
 
-  if (existing?.isBlocked) return existing;
+  if (existing) return existing;
 
   const clerkUser = await currentUser();
   if (!clerkUser || clerkUser.id !== userId) return null;
@@ -54,11 +54,6 @@ export async function requireStoreStaff(): Promise<User> {
     redirect(ROUTES.home);
   }
 
-  await syncClerkPublicMetadata(user.clerkId, {
-    role: user.role,
-    dbUserId: user.id,
-  });
-
   return user;
 }
 
@@ -68,11 +63,6 @@ export async function requireSuperAdmin(): Promise<User> {
   if (!isSuperAdmin(user.role)) {
     redirect(ROUTES.home);
   }
-
-  await syncClerkPublicMetadata(user.clerkId, {
-    role: user.role,
-    dbUserId: user.id,
-  });
 
   return user;
 }
